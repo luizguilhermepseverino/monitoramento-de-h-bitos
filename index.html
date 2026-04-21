@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Habit Game</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>🎮 Habit Game</h1>
+
+<div class="container">
+
+  <div class="card">
+    <h2>Adicionar Hábito</h2>
+    <input type="text" id="habitName" placeholder="Nome do hábito">
+    <input type="number" id="habitGoal" placeholder="Meta (ex: 2)">
+    <button onclick="addHabit()">Adicionar</button>
+  </div>
+
+  <div class="card">
+    <h2>Seus Hábitos</h2>
+    <ul id="habitList"></ul>
+  </div>
+
+  <div class="card">
+    <h2>Status</h2>
+    <p>⚡ Energia: <span id="energy">0</span></p>
+    <p>🔥 Streak: <span id="streak">0</span> dias</p>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
