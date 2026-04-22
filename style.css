@@ -1,0 +1,312 @@
+/* --- CONFIGURAÇÕES GERAIS --- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0b0e14;
+    color: #e0e0e0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.hidden { display: none !important; }
+
+/* --- TELA DE LOGIN --- */
+.overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle, #1a1c23 0%, #0b0e14 100%);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 1000;
+}
+
+.login-box {
+    background: #1f1f2d;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    text-align: center;
+    width: 320px;
+    border: 1px solid #333;
+}
+
+.login-box h1 { color: #244f80; margin-bottom: 20px; }
+
+.login-box input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #0b0e14;
+    color: white;
+    box-sizing: border-box;
+}
+
+/* --- ESTRUTURA PRINCIPAL --- */
+.app-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+    gap: 20px;
+}
+
+section {
+    background: #1a1c23;
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid #2d3436;
+    overflow-y: auto;
+}
+
+.habits-section { flex: 1; min-width: 350px; }
+.game-section { flex: 1.5; display: flex; flex-direction: column; align-items: center; }
+
+/* --- CRIADOR DE HÁBITOS --- */
+.habit-creator {
+    background: #252833;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+#habitInput {
+    width: 100%;
+    padding: 10px;
+    background: #0b0e14;
+    border: 1px solid #444;
+    color: white;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+}
+
+.icon-selector {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 15px;
+}
+
+.icon-opt {
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    transition: 0.2s;
+}
+
+.icon-opt.selected {
+    border-color: #4a90e2;
+    background: #1a1c23;
+}
+
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin: 15px 0;
+    font-size: 0.85rem;
+}
+
+/* --- ELEMENTOS DE JOGO (ARENA) --- */
+.enemy-intent {
+    background: rgba(233, 69, 96, 0.1);
+    border: 1px solid #e94560;
+    padding: 10px 25px;
+    border-radius: 30px;
+    margin-bottom: 20px;
+    color: #ff9a9e;
+    font-weight: bold;
+}
+
+.battle-screen {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 30px;
+}
+
+.hp-bar {
+    width: 180px;
+    height: 15px;
+    background: #333;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #555;
+}
+
+.hp-bar div {
+    height: 100%;
+    background: #27ae60;
+    transition: width 0.5s ease-in-out;
+}
+
+.shield-badge {
+    color: #4a90e2;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+/* --- CARTAS --- */
+.hand {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.card {
+    width: 100px;
+    height: 140px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-align: center;
+    padding: 10px;
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid rgba(255,255,255,0.1);
+}
+
+.card:hover:not(.disabled) { transform: translateY(-15px) scale(1.05); }
+.card.disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
+
+.card-ataque { background: linear-gradient(135deg, #e94560, #a21b31); }
+.card-defesa { background: linear-gradient(135deg, #4a90e2, #2980b9); }
+.card-magia { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+.card-sangue { background: linear-gradient(135deg, #800000, #4a0000); }
+.card-raio { background: linear-gradient(135deg, #f1c40f, #f39c12); color: #000; }
+
+.card-icon { font-size: 2rem; margin-bottom: 8px; }
+
+/* --- BOTÕES E STATUS --- */
+.btn-main {
+    background: #4a90e2;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.btn-main:hover { background: #357abd; }
+
+.btn-turn {
+    background: #f39c12;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.btn-turn:hover { background: #e67e22; transform: scale(1.05); }
+
+#battleLog {
+    margin-top: 15px;
+    font-style: italic;
+    color: #bdc3c7;
+    height: 20px;
+}
+
+.status-effects {
+    height: 20px;
+    color: #e94560;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.login-logo {
+    width: 200px;       /* Ajuste o tamanho aqui */
+    height: auto;
+    margin-bottom: 15px;
+    border-radius: 10px; /* Deixa as bordas da imagem suaves */
+}
+
+.login-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.card {
+    width: 110px; /* Aumentei um pouco para caber o texto */
+    height: 150px;
+    padding: 8px;
+    font-size: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card strong {
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+}
+
+.card-desc {
+    font-size: 0.65rem;
+    line-height: 1.1;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 5px 0;
+    font-style: italic;
+}
+
+.card-cost {
+    font-weight: bold;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+}
+
+/* Centraliza o texto dentro da barra de HP */
+.hp-bar {
+    position: relative;
+    height: 20px;
+    background-color: #444;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.hp-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    top: 0;
+    left: 0;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px black;
+    line-height: 20px; /* Alinha verticalmente com a altura da barra */
+}
+
+/* Estilo para o dano nas cartas */
+.card-power {
+    font-size: 0.9em;
+    color: #ffd700;
+    margin: 5px 0;
+    font-weight: bold;
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+    padding: 2px;
+}
+
+.card {
+    position: relative;
+    /* ... seus estilos existentes ... */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
