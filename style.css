@@ -1,0 +1,264 @@
+/* --- CONFIGURAÇÕES GERAIS --- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0b0e14; /* Fundo geral escuro */
+    color: #e0e0e0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.hidden { display: none !important; }
+
+/* --- TELA DE LOGIN --- */
+.overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    /* Mantém a madeira no fundo do login para um ar de mistério */
+    background: radial-gradient(circle, rgba(26, 28, 35, 0.8) 0%, rgba(11, 14, 20, 0.9) 100%), url('fundo.png');
+    background-size: cover;
+    display: flex; justify-content: center; align-items: center;
+    z-index: 1000;
+}
+
+.login-box {
+    background: rgba(31, 31, 45, 0.95);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    text-align: center;
+    width: 320px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-logo {
+    width: 200px;
+    height: auto;
+    margin-bottom: 15px;
+    border-radius: 10px;
+}
+
+.login-box h1 { color: #244f80; margin-bottom: 20px; }
+
+.login-box input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #0b0e14;
+    color: white;
+    box-sizing: border-box;
+}
+
+/* --- ESTRUTURA PRINCIPAL --- */
+.app-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+    gap: 20px;
+}
+
+section {
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid #2d3436;
+    overflow-y: auto;
+}
+
+/* LADO ESQUERDO: HÁBITOS (FUNDO ESCURO ORIGINAL) */
+.habits-section { 
+    flex: 1; 
+    min-width: 350px; 
+    background: #1a1c23; 
+}
+
+/* LADO DIREITO: ARENA DE JOGO (MESA DE MADEIRA) */
+.game-section { 
+    flex: 1.5; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    background-image: url('fundo.png'); /* A madeira entra aqui */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* --- CRIADOR DE HÁBITOS --- */
+.habit-creator {
+    background: #252833;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+#habitInput {
+    width: 100%;
+    padding: 10px;
+    background: #0b0e14;
+    border: 1px solid #444;
+    color: white;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+}
+
+.icon-selector {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 15px;
+}
+
+.icon-opt {
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    transition: 0.2s;
+}
+
+.icon-opt.selected {
+    border-color: #4a90e2;
+    background: #1a1c23;
+}
+
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin: 15px 0;
+    font-size: 0.85rem;
+}
+
+/* --- ELEMENTOS DA ARENA (COM CONTRASTE PARA A MADEIRA) --- */
+.enemy-intent {
+    background: rgba(0, 0, 0, 0.7); /* Fundo preto para ler melhor sobre a madeira */
+    border: 1px solid #e94560;
+    padding: 10px 25px;
+    border-radius: 30px;
+    margin-bottom: 20px;
+    color: #ff9a9e;
+    font-weight: bold;
+    backdrop-filter: blur(5px);
+}
+
+.battle-screen {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 30px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 15px;
+    border-radius: 15px;
+}
+
+.hp-bar {
+    position: relative;
+    width: 180px;
+    height: 20px;
+    background: #333;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #555;
+}
+
+.hp-bar div {
+    height: 100%;
+    background: #27ae60;
+    transition: width 0.5s ease-in-out;
+}
+
+.hp-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    top: 0; left: 0;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px black;
+    line-height: 20px;
+    z-index: 2;
+}
+
+.shield-badge {
+    color: #4a90e2;
+    font-weight: bold;
+    margin-top: 5px;
+    text-shadow: 1px 1px 2px black;
+}
+
+/* --- CARTAS --- */
+.hand {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.card {
+    position: relative;
+    width: 110px;
+    height: 150px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-align: center;
+    padding: 0;
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid rgba(255,255,255,0.1);
+    overflow: hidden;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.5); /* Sombra para destacar da madeira */
+}
+
+.card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+}
+
+.card:hover:not(.disabled) { transform: translateY(-15px) scale(1.05); }
+.card.disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
+
+/* Tipos de Cartas */
+.card-ataque { background: #e94560; border-color: #ff9a9e; }
+.card-defesa { background: #4a90e2; border-color: #2980b9; }
+.card-magia { background: #9b59b6; border-color: #8e44ad; }
+.card-sangue { background: #800000; border-color: #ff0000; }
+.card-raio { background: #f1c40f; color: #000; border-color: #f39c12; }
+
+/* Detalhes da Carta */
+.card strong { font-size: 0.9rem; margin-bottom: 2px; }
+.card-desc { font-size: 0.65rem; line-height: 1.1; color: white; margin: 5px 0; font-style: italic; }
+.card-cost { font-weight: bold; background: rgba(0, 0, 0, 0.5); padding: 2px 6px; border-radius: 10px; font-size: 0.75rem; }
+.card-power { font-size: 0.9em; color: #ffd700; margin: 5px 0; font-weight: bold; background: rgba(0,0,0,0.5); border-radius: 4px; padding: 2px; }
+
+/* --- FILA DE PRÓXIMAS CARTAS --- */
+.deck-info { margin: 15px 0; text-align: center; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; }
+.upcoming-container { display: flex; gap: 8px; margin-top: 5px; justify-content: center; }
+.preview-card-slot { width: 45px; height: 60px; border-radius: 6px; border: 2px solid #333; background: #0b0e14; overflow: hidden; }
+.preview-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+
+/* --- BOTÕES --- */
+.btn-main { background: #4a90e2; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+.btn-main:hover { background: #357abd; }
+.btn-turn { background: #f39c12; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+.btn-turn:hover { background: #e67e22; transform: scale(1.05); }
+
+/* --- LOG E STATUS --- */
+#battleLog { margin-top: 15px; font-style: italic; color: #e0e0e0; height: 20px; text-shadow: 1px 1px 2px black; }
+.status-effects { height: 20px; color: #e94560; font-size: 0.9rem; font-weight: bold; text-shadow: 1px 1px 2px black; }
