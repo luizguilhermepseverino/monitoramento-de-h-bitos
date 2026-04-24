@@ -288,9 +288,9 @@ function toggleSuggestions() {
 // --- FUNÇÕES DE APOIO ---
 function prepareEnemyAction() {
     const actions = [
-        { text: "Atacar (35 dano)", type: "dmg", val: 35 },
-        { text: "Magia Obscura (50 dano)", type: "dmg", val: 50 },
-        { text: "Escudo de Almas (35 escudo)", type: "shield", val: 35 }
+        { text: "Atacar (25 dano)", type: "dmg", val: 25 },
+        { text: "Magia Obscura (40 dano)", type: "dmg", val: 40 },
+        { text: "Escudo de Almas (25 escudo)", type: "shield", val: 25 }
     ];
     enemy.nextAction = actions[Math.floor(Math.random() * actions.length)];
     document.getElementById('intentText').innerText = enemy.nextAction.text;
