@@ -19,8 +19,7 @@ let selectedIcon = "🏃";
 let currentHand = [];
 let drawPile = []; 
 
-// --- BARALHO MESTRE (Composição Fixa) ---
-// Definimos exatamente quantas cópias de cada carta existem no deck
+// --- BARALHO MESTRE ---
 const masterDeck = [
     ...Array(4).fill({ name: "Golpe", type: "atk", cost: 1, power: 15, img: "golpe.png", colorClass: "card-ataque" }),
     ...Array(3).fill({ name: "Escudo", type: "def", cost: 1, power: 20, img: "escudo.png", colorClass: "card-defesa" }),
@@ -71,10 +70,8 @@ function login() {
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
         
-        // Prepara o baralho inicial
         shuffleDeck();
         drawHand(); 
-        
         prepareEnemyAction();
         updateUI();
     } else {
@@ -82,15 +79,13 @@ function login() {
     }
 }
 
-// --- SISTEMA DE BARALHO (Lógica de Embaralhar) ---
+// --- SISTEMA DE BARALHO ---
 function shuffleDeck() {
-    // Cria uma nova pilha de compra baseada no deck mestre
     drawPile = masterDeck.map(card => ({ 
         ...card, 
         id: Math.random().toString(36).substr(2, 9) 
     }));
 
-    // Algoritmo Fisher-Yates para embaralhar de verdade
     for (let i = drawPile.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [drawPile[i], drawPile[j]] = [drawPile[j], drawPile[i]];
@@ -99,11 +94,8 @@ function shuffleDeck() {
 }
 
 function drawHand() {
-    // Compra cartas até ter 6 na mão ou o deck acabar
     while (currentHand.length < 6) {
-        if (drawPile.length === 0) {
-            shuffleDeck(); // Reembaralha se as cartas acabarem
-        }
+        if (drawPile.length === 0) shuffleDeck();
         currentHand.push(drawPile.shift());
     }
 }
@@ -157,6 +149,7 @@ function playCard(uniqueId) {
 }
 
 function endTurn() {
+    // Escudo do inimigo reseta no início do turno dele (ou fim do seu)
     enemy.enemyShield = 0;
 
     if (enemy.bleedTurns > 0) { 
@@ -177,7 +170,7 @@ function endTurn() {
                 log(`${enemy.name} causou ${finalDmg} de dano!`);
             } else if (enemy.nextAction.type === "shield") {
                 enemy.enemyShield = enemy.nextAction.val * multiplier;
-                log(`${enemy.name} ativou escudo!`);
+                log(`${enemy.name} ativou escudo de ${enemy.enemyShield}!`);
             }
         } else {
             log("Inimigo atordoado!");
@@ -186,27 +179,35 @@ function endTurn() {
         enemy.stunned = false;
         player.shield = 0; 
         
-        // Compra novas cartas para o próximo turno
         drawHand();
-
         prepareEnemyAction();
         updateUI();
         checkGameOver();
     }, 600);
 }
 
-// --- INTERFACE ---
+// --- INTERFACE (ATUALIZADA) ---
 function updateUI() {
     const enemyDisplay = document.getElementById('enemyNameDisplay');
     if(enemyDisplay) enemyDisplay.innerText = enemy.name;
 
+    // Status Jogador
     document.getElementById('playerHp').style.width = (player.hp / 100) * 100 + "%";
     document.getElementById('playerHpText').innerText = `${player.hp} / 100`;
-    document.getElementById('enemyHp').style.width = Math.max(0, (enemy.hp / enemy.maxHp) * 100) + "%";
-    document.getElementById('enemyHpText').innerText = `${Math.max(0, enemy.hp)} / ${enemy.maxHp}`;
     document.getElementById('energyStat').innerText = player.energy;
     document.getElementById('shieldDisplay').innerText = `🛡️ ${player.shield}`;
+
+    // Status Inimigo
+    document.getElementById('enemyHp').style.width = Math.max(0, (enemy.hp / enemy.maxHp) * 100) + "%";
+    document.getElementById('enemyHpText').innerText = `${Math.max(0, enemy.hp)} / ${enemy.maxHp}`;
     
+    // ATUALIZAÇÃO: Mostra o valor do escudo do inimigo na interface
+    const enemyShieldBadge = document.getElementById('shieldDisplayEnemy');
+    if(enemyShieldBadge) {
+        enemyShieldBadge.innerText = `🛡️ ${enemy.enemyShield || 0}`;
+    }
+    
+    // Renderizar Mão
     const handDiv = document.getElementById('playerHand');
     handDiv.innerHTML = "";
     
