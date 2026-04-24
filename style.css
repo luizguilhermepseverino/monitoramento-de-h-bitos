@@ -382,3 +382,49 @@ section {
     margin-top: 5px;
     font-size: 0.9rem;
 }
+
+/* --- ESCUDOS (PLAYER E ENEMY) --- */
+.shield-badge {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 0.85rem;
+    display: inline-block;
+    margin-top: 8px;
+    border: 2px solid #ecf0f1;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Animação para o escudo aparecer com efeito */
+@keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* Ajuste específico para as entidades na tela de batalha */
+.entity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+#enemyNameDisplay, #playerNameDisplay {
+    margin-top: 8px;
+    font-weight: bold;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+/* Ocultar o escudo se o valor for 0 (opcional para limpeza visual) */
+/* Se quiser que o 0 apareça sempre, remova as linhas abaixo */
+#shieldDisplayEnemy:contains("🛡️ 0"), 
+#shieldDisplay:contains("🛡️ 0") {
+    opacity: 0.5;
+}
