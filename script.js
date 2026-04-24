@@ -1,9 +1,9 @@
 // --- ESTADO DE PROGRESSÃO E INIMIGOS ---
 let currentStage = 0;
 const enemiesList = [
-    { name: "👾 Globin", hp: 30, maxHp: 30, color: "#27ae60" },
-    { name: "👹 Golem", hp: 65, maxHp: 65, color: "#e67e22" },
-    { name: "🐉 Dragão do Prazo Final", hp: 100, maxHp: 100, color: "#c0392b" }
+    { name: "👾 Globin", hp: 50, maxHp: 50, color: "#27ae60", img: "globin.png" },
+    { name: "👹 Golem", hp: 75, maxHp: 75, color: "#e67e22", img: "golem.png" },
+    { name: "🐉 Dragão do Prazo Final", hp: 140, maxHp: 140, color: "#c0392b", img: "dragao.png" }
 ];
 
 // --- CALENDÁRIO E HISTÓRICO ---
@@ -12,9 +12,9 @@ let currentDayIndex = 0;
 let habitHistoryData = [0, 0, 0, 0, 0, 0, 0];
 let habitChart;
 
-// --- ESTADO DO JOGADOR ---
-let player = { hp: 100, shield: 0, energy: 0, name: "Herói", dmgBuff: 0 };
-let enemy = { ...enemiesList[0], nextAction: null, bleedTurns: 0, stunned: false };
+// --- ESTADO DO JOGADOR E INIMIGO ---
+let player = { hp: 100, shield: 0, energy: 0, name: "Herói", dmgBuff: 0, gender: "Masculino" };
+let enemy = { ...enemiesList[0], nextAction: null, bleedTurns: 0, stunned: false, enemyShield: 0 };
 let selectedIcon = "🏃";
 let currentHand = [];
 let drawPile = []; 
@@ -28,40 +28,59 @@ const masterDeck = [
     { name: "Lâmina Sombria", type: "atk", effect: "bleed", cost: 1, power: 20, img: "laminasombria.png", colorClass: "card-espada" },
     { name: "Bola de Fogo", type: "magia", cost: 2, power: 35, img: "boladefogo.png", colorClass: "card-magia" },
     { name: "Veredito do Arcanjo", type: "magia", cost: 3, power: 60, img: "veredito.png", colorClass: "card-magia" },
-    { name: "Escudo", type: "def", cost: 1, power: 20, icon: "🛡️", colorClass: "card-defesa" },
+    { name: "Escudo", type: "def", cost: 1, power: 20, img: "escudo.png", colorClass: "card-defesa" },
     { name: "Meditar", type: "heal", cost: 2, power: 25, img: "meditar.png", colorClass: "card-magia" }
 ];
 
 // --- INICIALIZAÇÃO E LOGIN ---
 document.addEventListener('DOMContentLoaded', () => {
-    setupIconSelector();
+    setupEmojiSelection(); 
     initChart();
 });
+
+function toggleHabitMenu() {
+    const menu = document.getElementById('habitMenu');
+    menu.classList.toggle('hidden');
+}
+
+function setupEmojiSelection() {
+    const emojis = document.querySelectorAll('.emoji-item');
+    emojis.forEach(emoji => {
+        emoji.onclick = () => {
+            emojis.forEach(e => e.classList.remove('selected'));
+            emoji.classList.add('selected');
+            selectedIcon = emoji.dataset.icon || emoji.textContent;
+        };
+    });
+}
 
 function login() {
     const email = document.getElementById('userEmail').value;
     const name = document.getElementById('userName').value;
     const pass = document.getElementById('userPass').value;
+    const gender = document.getElementById('userGender').value; 
 
-    if (email.toLowerCase().endsWith("@gmail.com") && pass && name) {
+    if (email.toLowerCase().endsWith("@gmail.com") && pass && name && gender) {
         player.name = name;
+        player.gender = gender;
         document.getElementById('playerNameDisplay').innerText = name; 
+        const playerImg = document.getElementById('playerSprite');
+        playerImg.src = (gender === "Feminino") ? "heroi_mulher.png" : "heroi_homem.png";
+        document.getElementById('enemySprite').src = enemy.img;
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
-        
         updateDrawPile();
         for(let i=0; i<4; i++) drawHand(); 
-        
         prepareEnemyAction();
         updateUI();
     } else {
-        alert("Preencha todos os campos!");
+        alert("Preencha todos os campos e selecione seu gênero!");
     }
 }
 
 // --- SISTEMA DE FILA E MÃO ---
 function updateDrawPile() {
-    while (drawPile.length < 8) { // Aumentado para garantir cartas suficientes para o próximo turno
+    while (drawPile.length < 8) {
         const randomIndex = Math.floor(Math.random() * masterDeck.length);
         drawPile.push({ ...masterDeck[randomIndex], id: Math.random().toString(36).substr(2, 9) });
     }
@@ -87,7 +106,7 @@ function drawHand() {
     }
 }
 
-// --- MECÂNICAS DE COMBATE ATUALIZADAS ---
+// --- MECÂNICAS DE COMBATE ---
 function playCard(uniqueId) {
     const cardIndex = currentHand.findIndex(c => c.id === uniqueId);
     if (cardIndex === -1) return;
@@ -99,8 +118,13 @@ function playCard(uniqueId) {
         
         switch(card.type) {
             case "atk": case "pierce": case "magia":
-                enemy.hp -= finalPower;
-                log(`Usou ${card.name}! ${finalPower} de dano.`);
+                // Lógica de Escudo do Inimigo
+                let damageToHp = Math.max(0, finalPower - (enemy.enemyShield || 0));
+                enemy.enemyShield = Math.max(0, (enemy.enemyShield || 0) - finalPower);
+                
+                enemy.hp -= damageToHp;
+                log(`Usou ${card.name}! ${finalPower} de impacto.`);
+                
                 if (card.effect === "bleed") {
                     enemy.bleedTurns = 3;
                     log("O inimigo começou a sangrar!");
@@ -134,7 +158,9 @@ function playCard(uniqueId) {
 }
 
 function endTurn() {
-    // Lógica de Sangramento
+    // Escudo do inimigo reseta ao começar o turno dele
+    enemy.enemyShield = 0;
+
     if (enemy.bleedTurns > 0) { 
         enemy.hp -= 10; 
         enemy.bleedTurns--; 
@@ -145,13 +171,17 @@ function endTurn() {
         if (enemy.hp <= 0) { checkGameOver(); return; }
         
         if (!enemy.stunned) {
+            // Multiplicador do Dragão
+            let multiplier = (enemy.name.includes("Dragão")) ? 1.5 : 1.0;
+
             if (enemy.nextAction.type === "dmg") {
-                let dmg = Math.max(0, enemy.nextAction.val - player.shield);
-                player.hp -= dmg;
-                log(`Inimigo causou ${dmg} de dano!`);
-            } else if (enemy.nextAction.type === "drain") {
-                player.energy = Math.max(0, player.energy - 2);
-                log(`Energia drenada!`);
+                let baseDmg = enemy.nextAction.val * multiplier;
+                let finalDmg = Math.max(0, baseDmg - player.shield);
+                player.hp -= finalDmg;
+                log(`${enemy.name} usou ${enemy.nextAction.text.split('(')[0]} e causou ${finalDmg} de dano!`);
+            } else if (enemy.nextAction.type === "shield") {
+                enemy.enemyShield = enemy.nextAction.val * multiplier;
+                log(`${enemy.name} ativou escudo de ${enemy.enemyShield}!`);
             }
         } else {
             log("Inimigo atordoado!");
@@ -160,7 +190,6 @@ function endTurn() {
         enemy.stunned = false;
         player.shield = 0; 
         
-        // COMPRA AUTOMÁTICA DE 4 CARTAS (Preenche a mão até 4)
         while (currentHand.length < 4) {
             drawHand();
         }
@@ -188,7 +217,8 @@ function updateUI() {
     
     currentHand.forEach(card => {
         const div = document.createElement('div');
-        div.className = `card ${card.colorClass} ${player.energy < card.cost ? 'disabled' : ''}`;
+        const canAfford = player.energy >= card.cost;
+        div.className = `card ${card.colorClass} ${!canAfford ? 'disabled' : ''}`;
         div.style.padding = "0"; 
         div.style.overflow = "hidden";
 
@@ -198,28 +228,20 @@ function updateUI() {
             div.innerHTML = `<div class="card-icon" style="margin-top:10px">${card.icon}</div><strong style="font-size:0.8rem">${card.name}</strong>`;
         }
 
-        div.onclick = () => playCard(card.id);
+        if(canAfford) {
+            div.onclick = () => playCard(card.id);
+        }
         handDiv.appendChild(div);
     });
     renderUpcoming();
 }
 
-// --- FUNÇÕES DE APOIO ---
-function setupIconSelector() {
-    const opts = document.querySelectorAll('.icon-opt');
-    opts.forEach(opt => {
-        opt.onclick = () => {
-            opts.forEach(o => o.classList.remove('selected'));
-            opt.classList.add('selected');
-            selectedIcon = opt.dataset.icon;
-        };
-    });
-}
-
+// --- GESTÃO DE HÁBITOS ---
 function addHabit() {
     const input = document.getElementById('habitInput');
     const diff = document.getElementById('habitDifficulty').value;
     if (!input.value.trim()) return;
+
     const li = document.createElement('li');
     li.className = 'habit-item';
     li.innerHTML = `
@@ -227,10 +249,11 @@ function addHabit() {
             <span class="habit-main">${selectedIcon} ${input.value}</span>
             <small class="habit-meta">Ganho: ${diff}⚡</small>
         </div>
-        <button onclick="completeHabit(this, ${diff})" class="btn-main">Concluir</button>
+        <button onclick="completeHabit(this, ${diff})" class="btn-main" style="width:auto; padding: 5px 15px;">Concluir</button>
     `;
     document.getElementById('habitList').appendChild(li);
     input.value = ""; 
+    toggleHabitMenu(); 
 }
 
 function completeHabit(btn, pts) {
@@ -244,11 +267,38 @@ function completeHabit(btn, pts) {
     updateUI();
 }
 
+function toggleSuggestions() {
+    const box = document.getElementById('suggestionBox');
+    if(box.innerHTML === "") {
+        const sugestoes = [
+            { text: "Beber 2L de água", icon: "💧", diff: 1 },
+            { text: "Ler 10 páginas", icon: "📚", diff: 2 },
+            { text: "Correr 5km", icon: "🏃", diff: 3 },
+            { text: "Treino de força", icon: "💪", diff: 3 },
+            { text: "Dormir 8h", icon: "😴", diff: 1 }
+        ];
+        sugestoes.forEach(sug => {
+            const btn = document.createElement('button');
+            btn.className = "btn-main";
+            btn.style.margin = "5px";
+            btn.innerHTML = `${sug.icon} ${sug.text}`;
+            btn.onclick = () => { 
+                document.getElementById('habitInput').value = sug.text; 
+                selectedIcon = sug.icon; 
+                box.classList.add('hidden'); 
+            };
+            box.appendChild(btn);
+        });
+    }
+    box.classList.toggle('hidden');
+}
+
+// --- FUNÇÕES DE APOIO ---
 function prepareEnemyAction() {
     const actions = [
         { text: "Atacar (15 dano)", type: "dmg", val: 15 },
-        { text: "Drenar (Energia -2)", type: "drain", val: 2 },
-        { text: "Golpe Pesado (30 dano)", type: "dmg", val: 30 }
+        { text: "Magia Obscura (40 dano)", type: "dmg", val: 40 },
+        { text: "Escudo de Almas (30 escudo)", type: "shield", val: 30 }
     ];
     enemy.nextAction = actions[Math.floor(Math.random() * actions.length)];
     document.getElementById('intentText').innerText = enemy.nextAction.text;
@@ -271,13 +321,16 @@ function checkGameOver() {
 function startNextStage() {
     if (currentStage >= enemiesList.length) currentStage = 0;
     const next = enemiesList[currentStage];
-    enemy = { ...next, nextAction: null, bleedTurns: 0, stunned: false };
+    enemy = { ...next, nextAction: null, bleedTurns: 0, stunned: false, enemyShield: 0 };
+    document.getElementById('enemySprite').src = next.img;
     prepareEnemyAction();
     updateUI();
 }
 
 function initChart() {
-    const ctx = document.getElementById('habitChart').getContext('2d');
+    const canvas = document.getElementById('habitChart');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
     habitChart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -295,8 +348,10 @@ function initChart() {
 }
 
 function updateChart() {
-    habitChart.data.datasets[0].data = habitHistoryData;
-    habitChart.update();
+    if(habitChart) {
+        habitChart.data.datasets[0].data = habitHistoryData;
+        habitChart.update();
+    }
 }
 
 function nextDay() {
@@ -322,19 +377,4 @@ function switchTab(tabName) {
         buttons[1].classList.add('active');
         updateChart();
     }
-}
-
-function toggleSuggestions() {
-    const box = document.getElementById('suggestionBox');
-    if(box.innerHTML === "") {
-        [ { text: "Beber 2L de água", icon: "💧", diff: 1 }, { text: "Ler 10 páginas", icon: "📚", diff: 2 } ].forEach(sug => {
-            const btn = document.createElement('button');
-            btn.className = "btn-main";
-            btn.style.margin = "5px";
-            btn.innerHTML = `${sug.icon} ${sug.text}`;
-            btn.onclick = () => { document.getElementById('habitInput').value = sug.text; selectedIcon = sug.icon; box.classList.add('hidden'); };
-            box.appendChild(btn);
-        });
-    }
-    box.classList.toggle('hidden');
 }
