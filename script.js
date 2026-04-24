@@ -19,17 +19,18 @@ let selectedIcon = "🏃";
 let currentHand = [];
 let drawPile = []; 
 
-// BARALHO MESTRE
+// --- BARALHO MESTRE (Composição Fixa) ---
+// Definimos exatamente quantas cópias de cada carta existem no deck
 const masterDeck = [
-    { name: "Golpe", type: "atk", cost: 1, power: 15, img: "golpe.png", colorClass: "card-ataque" },
-    { name: "Preciso", type: "pierce", cost: 2, power: 15, img: "preciso.png", colorClass: "card-espada" },
-    { name: "Atordoar", type: "stun", cost: 3, power: 0, img: "atordoar.png", colorClass: "card-magia" },
-    { name: "Foco", type: "energy", cost: 0, power: 2, img: "foco.png", colorClass: "card-raio" },
-    { name: "Lâmina Sombria", type: "atk", effect: "bleed", cost: 1, power: 20, img: "laminasombria.png", colorClass: "card-espada" },
-    { name: "Bola de Fogo", type: "magia", cost: 2, power: 35, img: "boladefogo.png", colorClass: "card-magia" },
-    { name: "Veredito do Arcanjo", type: "magia", cost: 3, power: 60, img: "veredito.png", colorClass: "card-magia" },
-    { name: "Escudo", type: "def", cost: 1, power: 20, img: "escudo.png", colorClass: "card-defesa" },
-    { name: "Meditar", type: "heal", cost: 2, power: 25, img: "meditar.png", colorClass: "card-magia" }
+    ...Array(4).fill({ name: "Golpe", type: "atk", cost: 1, power: 15, img: "golpe.png", colorClass: "card-ataque" }),
+    ...Array(3).fill({ name: "Escudo", type: "def", cost: 1, power: 20, img: "escudo.png", colorClass: "card-defesa" }),
+    ...Array(3).fill({ name: "Lâmina Sombria", type: "atk", effect: "bleed", cost: 1, power: 20, img: "laminasombria.png", colorClass: "card-espada" }),
+    ...Array(2).fill({ name: "Preciso", type: "pierce", cost: 2, power: 15, img: "preciso.png", colorClass: "card-espada" }),
+    ...Array(2).fill({ name: "Bola de Fogo", type: "magia", cost: 2, power: 35, img: "boladefogo.png", colorClass: "card-magia" }),
+    ...Array(2).fill({ name: "Meditar", type: "heal", cost: 2, power: 25, img: "meditar.png", colorClass: "card-magia" }),
+    ...Array(2).fill({ name: "Atordoar", type: "stun", cost: 3, power: 0, img: "atordoar.png", colorClass: "card-magia" }),
+    ...Array(2).fill({ name: "Foco", type: "energy", cost: 0, power: 2, img: "foco.png", colorClass: "card-raio" }),
+    { name: "Veredito do Arcanjo", type: "magia", cost: 3, power: 60, img: "veredito.png", colorClass: "card-magia" }
 ];
 
 // --- INICIALIZAÇÃO E LOGIN ---
@@ -69,40 +70,41 @@ function login() {
         document.getElementById('enemySprite').src = enemy.img;
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
-        updateDrawPile();
-        for(let i=0; i<4; i++) drawHand(); 
+        
+        // Prepara o baralho inicial
+        shuffleDeck();
+        drawHand(); 
+        
         prepareEnemyAction();
         updateUI();
     } else {
-        alert("Preencha todos os campos e selecione seu gênero!");
+        alert("Preencha todos os campos corretamente!");
     }
 }
 
-// --- SISTEMA DE FILA E MÃO ---
-function updateDrawPile() {
-    while (drawPile.length < 8) {
-        const randomIndex = Math.floor(Math.random() * masterDeck.length);
-        drawPile.push({ ...masterDeck[randomIndex], id: Math.random().toString(36).substr(2, 9) });
-    }
-    renderUpcoming();
-}
+// --- SISTEMA DE BARALHO (Lógica de Embaralhar) ---
+function shuffleDeck() {
+    // Cria uma nova pilha de compra baseada no deck mestre
+    drawPile = masterDeck.map(card => ({ 
+        ...card, 
+        id: Math.random().toString(36).substr(2, 9) 
+    }));
 
-function renderUpcoming() {
-    const container = document.getElementById('upcomingCards');
-    if (!container) return;
-    container.innerHTML = "";
-    drawPile.slice(0, 4).forEach((card, index) => {
-        const div = document.createElement('div');
-        div.className = `preview-card-slot card-${card.type} next-${index + 1} ${card.colorClass}`;
-        div.innerHTML = card.img ? `<img src="${card.img}" class="preview-img" style="width:100%; height:100%; object-fit:cover; border-radius:4px;">` : `<span>${card.icon}</span>`;
-        container.appendChild(div);
-    });
+    // Algoritmo Fisher-Yates para embaralhar de verdade
+    for (let i = drawPile.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [drawPile[i], drawPile[j]] = [drawPile[j], drawPile[i]];
+    }
+    log("Baralho reembaralhado!");
 }
 
 function drawHand() {
-    if (drawPile.length > 0) {
+    // Compra cartas até ter 6 na mão ou o deck acabar
+    while (currentHand.length < 6) {
+        if (drawPile.length === 0) {
+            shuffleDeck(); // Reembaralha se as cartas acabarem
+        }
         currentHand.push(drawPile.shift());
-        updateDrawPile();
     }
 }
 
@@ -118,13 +120,10 @@ function playCard(uniqueId) {
         
         switch(card.type) {
             case "atk": case "pierce": case "magia":
-                // Lógica de Escudo do Inimigo
                 let damageToHp = Math.max(0, finalPower - (enemy.enemyShield || 0));
                 enemy.enemyShield = Math.max(0, (enemy.enemyShield || 0) - finalPower);
-                
                 enemy.hp -= damageToHp;
                 log(`Usou ${card.name}! ${finalPower} de impacto.`);
-                
                 if (card.effect === "bleed") {
                     enemy.bleedTurns = 3;
                     log("O inimigo começou a sangrar!");
@@ -158,7 +157,6 @@ function playCard(uniqueId) {
 }
 
 function endTurn() {
-    // Escudo do inimigo reseta ao começar o turno dele
     enemy.enemyShield = 0;
 
     if (enemy.bleedTurns > 0) { 
@@ -171,17 +169,15 @@ function endTurn() {
         if (enemy.hp <= 0) { checkGameOver(); return; }
         
         if (!enemy.stunned) {
-            // Multiplicador do Dragão
             let multiplier = (enemy.name.includes("Dragão")) ? 1.5 : 1.0;
-
             if (enemy.nextAction.type === "dmg") {
                 let baseDmg = enemy.nextAction.val * multiplier;
                 let finalDmg = Math.max(0, baseDmg - player.shield);
                 player.hp -= finalDmg;
-                log(`${enemy.name} usou ${enemy.nextAction.text.split('(')[0]} e causou ${finalDmg} de dano!`);
+                log(`${enemy.name} causou ${finalDmg} de dano!`);
             } else if (enemy.nextAction.type === "shield") {
                 enemy.enemyShield = enemy.nextAction.val * multiplier;
-                log(`${enemy.name} ativou escudo de ${enemy.enemyShield}!`);
+                log(`${enemy.name} ativou escudo!`);
             }
         } else {
             log("Inimigo atordoado!");
@@ -190,9 +186,8 @@ function endTurn() {
         enemy.stunned = false;
         player.shield = 0; 
         
-        while (currentHand.length < 4) {
-            drawHand();
-        }
+        // Compra novas cartas para o próximo turno
+        drawHand();
 
         prepareEnemyAction();
         updateUI();
@@ -219,21 +214,17 @@ function updateUI() {
         const div = document.createElement('div');
         const canAfford = player.energy >= card.cost;
         div.className = `card ${card.colorClass} ${!canAfford ? 'disabled' : ''}`;
-        div.style.padding = "0"; 
-        div.style.overflow = "hidden";
-
-        if (card.img) {
-            div.innerHTML = `<img src="${card.img}" style="width:100%; height:100%; object-fit:cover;">`;
-        } else {
-            div.innerHTML = `<div class="card-icon" style="margin-top:10px">${card.icon}</div><strong style="font-size:0.8rem">${card.name}</strong>`;
-        }
+        
+        div.innerHTML = `
+            <div class="card-cost">${card.cost}</div>
+            ${card.img ? `<img src="${card.img}" style="width:100%; height:100%; object-fit:cover;">` : `<strong>${card.name}</strong>`}
+        `;
 
         if(canAfford) {
             div.onclick = () => playCard(card.id);
         }
         handDiv.appendChild(div);
     });
-    renderUpcoming();
 }
 
 // --- GESTÃO DE HÁBITOS ---
@@ -271,11 +262,11 @@ function toggleSuggestions() {
     const box = document.getElementById('suggestionBox');
     if(box.innerHTML === "") {
         const sugestoes = [
-            { text: "Beber 2L de água", icon: "💧", diff: 1 },
-            { text: "Ler 10 páginas", icon: "📚", diff: 2 },
-            { text: "Correr 5km", icon: "🏃", diff: 3 },
-            { text: "Treino de força", icon: "💪", diff: 3 },
-            { text: "Dormir 8h", icon: "😴", diff: 1 }
+            { text: "Beber 2L de água", icon: "💧", diff: 3 },
+            { text: "Ler 10 páginas", icon: "📚", diff: 4 },
+            { text: "Correr 5km", icon: "🏃", diff: 5 },
+            { text: "Treino de força", icon: "💪", diff: 5 },
+            { text: "Dormir 8h", icon: "😴", diff: 3 }
         ];
         sugestoes.forEach(sug => {
             const btn = document.createElement('button');
