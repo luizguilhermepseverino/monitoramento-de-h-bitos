@@ -1,9 +1,9 @@
 // --- ESTADO DE PROGRESSÃO E INIMIGOS ---
 let currentStage = 0;
 const enemiesList = [
-    { name: "👾 Globin", hp: 50, maxHp: 50, color: "#27ae60", img: "globin.png" },
-    { name: "👹 Golem", hp: 75, maxHp: 75, color: "#e67e22", img: "golem.png" },
-    { name: "🐉 Dragão do Prazo Final", hp: 140, maxHp: 140, color: "#c0392b", img: "dragao.png" }
+    { name: "Globin", hp: 50, maxHp: 50, color: "#27ae60", img: "globin.png" },
+    { name: "Golem", hp: 75, maxHp: 75, color: "#e67e22", img: "golem.png" },
+    { name: "Dragão do Prazo Final", hp: 140, maxHp: 140, color: "#c0392b", img: "dragao.png" }
 ];
 
 // --- CALENDÁRIO E HISTÓRICO ---
