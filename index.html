@@ -14,57 +14,79 @@
             <img src="image_0.png" alt="Habit Game Logo" class="login-logo">
             <h1>🛡️ HabitGame</h1>
             <p>Acesse sua conta de Herói</p>
-            <input type="text" id="userName" placeholder="Nome do seu Herói">
+            
+            <input type="text" id="userName" placeholder="Nome do usuário">
+            
+            <select id="userGender" class="login-input">
+                <option value="" disabled selected>Escolha seu Gênero</option>
+                <option value="Masculino">Homem</option>
+                <option value="Feminino">Mulher</option>
+            </select>
+
             <input type="email" id="userEmail" placeholder="E-mail (@gmail.com)">
             <input type="password" id="userPass" placeholder="Senha">
+            
             <button onclick="login()" class="btn-main">Entrar na Jornada</button>
         </div>
     </div>
 
     <div class="app-container hidden" id="mainApp">
-        <div class="calendar-bar">
-            <h2 id="currentDayDisplay">📅 Segunda-feira</h2>
-            <button onclick="nextDay()" class="btn-next-day">Avançar Dia ➡️</button>
-        </div>
-
+        
         <section class="habits-section">
-            <div class="tab-header">
-                <button class="tab-btn active" onclick="switchTab('pending')">Pendentes</button>
-                <button class="tab-btn" onclick="switchTab('history')">Histórico</button>
+            
+            <div class="sidebar-header">
+                <div class="date-control">
+                    <span class="current-day" id="currentDayDisplay">📅 Segunda-feira</span>
+                    <button class="btn-advance" onclick="nextDay()">Avançar Dia ⮕</button>
+                </div>
+                
+                <div class="tab-controls">
+                    <button class="tab-btn active" id="btn-pending" onclick="switchTab('pending')">Pendentes</button>
+                    <button class="tab-btn" id="btn-history" onclick="switchTab('history')">Histórico</button>
+                </div>
             </div>
 
             <div id="tab-pending">
-                <h2>🟦 Hábitos Disponíveis</h2>
-                
-                <div class="habit-creator">
+                <button onclick="toggleHabitMenu()" class="btn-sugestao" style="margin-bottom: 15px; background: #4a90e2; box-shadow: 0 4px 0 #2980b9;">
+                    ➕ Novo Hábito
+                </button>
+
+                <div id="habitMenu" class="habit-creator hidden">
+                    <h2 class="section-title">Criar Novo Hábito</h2>
+                    
                     <button onclick="toggleSuggestions()" class="btn-sugestao">💡 Ver Sugestões</button>
                     <div id="suggestionBox" class="suggestion-list hidden"></div>
-                    <hr style="border: 0.5px solid #333; margin: 15px 0;">
                     
-                    <input type="text" id="habitInput" placeholder="Novo hábito (ex: Estudar)...">
-                    <div class="icon-selector" id="iconSelector">
-                        <span class="icon-opt selected" data-icon="🏃">🏃</span>
-                        <span class="icon-opt" data-icon="💧">💧</span>
-                        <span class="icon-opt" data-icon="📚">📚</span>
-                        <span class="icon-opt" data-icon="🍎">🍎</span>
-                        <span class="icon-opt" data-icon="🧘">🧘</span>
+                    <div class="input-group">
+                        <input type="text" id="habitInput" placeholder="Ex: Treinar, Estudar...">
+                        <div class="emoji-picker" id="iconSelector">
+                            <span class="emoji-item selected" data-icon="🏃">🏃</span>
+                            <span class="emoji-item" data-icon="💧">💧</span>
+                            <span class="emoji-item" data-icon="📚">📚</span>
+                            <span class="emoji-item" data-icon="🍎">🍎</span>
+                            <span class="emoji-item" data-icon="🧘">🧘</span>
+                        </div>
                     </div>
+
                     <select id="habitDifficulty">
-                        <option value="1">Fácil (1⚡)</option>
-                        <option value="2">Médio (2⚡)</option>
-                        <option value="3">Difícil (3⚡)</option>
+                        <option value="1">Fácil (1 ⚡)</option>
+                        <option value="2">Médio (2 ⚡)</option>
+                        <option value="3" selected>Difícil (3 ⚡)</option>
                     </select>
-                    <button onclick="addHabit()" class="btn-main">Criar Hábito</button>
+
+                    <button onclick="addHabit()" class="btn-main">Forjar Hábito</button>
                 </div>
+
+                <h2 class="section-title">Missões do Dia</h2>
                 <ul id="habitList"></ul>
             </div>
 
             <div id="tab-history" class="hidden">
-                <h2>📈 Sua Produtividade</h2>
+                <h2 class="section-title">Sua Produtividade</h2>
                 <div class="chart-container">
                     <canvas id="habitChart"></canvas>
                 </div>
-                <h2 style="margin-top: 20px; color: #2ecc71;">✅ Concluídos no Dia</h2>
+                <h2 class="section-title" style="color: #2ecc71;">✅ Concluídos</h2>
                 <ul id="doneHabitList"></ul>
             </div>
         </section>
@@ -77,16 +99,22 @@
             <div class="battle-screen">
                 <div class="entity enemy">
                     <div id="enemyStatus" class="status-effects"></div>
+                    <div class="sprite-container">
+                        <img src="globin.png" id="enemySprite" alt="Inimigo">
+                    </div>
                     <div class="hp-bar">
-                        <div id="enemyHp" style="width: 100%; transition: 0.3s; background-color: #27ae60;"></div>
+                        <div id="enemyHp" style="width: 100%;"></div>
                         <span id="enemyHpText" class="hp-text-overlay">0 / 0</span>
                     </div>
                     <span id="enemyNameDisplay">Inimigo</span>
                 </div>
 
                 <div class="entity player">
+                    <div class="sprite-container">
+                        <img src="heroi_placeholder.png" id="playerSprite" alt="Herói">
+                    </div>
                     <div class="hp-bar">
-                        <div id="playerHp" style="width: 100%; transition: 0.3s; background-color: #e74c3c;"></div>
+                        <div id="playerHp" style="width: 100%;"></div>
                         <span id="playerHpText" class="hp-text-overlay">100 / 100</span>
                     </div>
                     <span id="playerNameDisplay">Herói</span>
@@ -96,8 +124,7 @@
 
             <div class="deck-info">
                 <small>PRÓXIMAS CARTAS:</small>
-                <div id="upcomingCards" class="upcoming-container">
-                    </div>
+                <div id="upcomingCards" class="upcoming-container"></div>
             </div>
 
             <div class="game-controls">
