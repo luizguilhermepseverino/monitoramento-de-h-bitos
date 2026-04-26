@@ -270,7 +270,7 @@ function startMinigame(type) {
     };
     clearInterval(minigameTimer);
     minigameTimer = setInterval(() => {
-        minigameTimeLeft -= (type === "math" ? 0.75 : 0.5); 
+        minigameTimeLeft -= (type === "math" ? 0.75 : 0.33); 
         document.getElementById('minigameTimerBar').style.width = minigameTimeLeft + "%";
         if (minigameTimeLeft <= 0) loseMinigame();
     }, 50);
