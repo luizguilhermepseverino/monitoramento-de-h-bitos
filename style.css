@@ -1,7 +1,18 @@
-/* --- CONFIGURAÇÕES GERAIS --- */
+/* --- CONFIGURAÇÕES GERAIS E VARIÁVEIS --- */
+:root {
+    --primary-blue: #4a90e2;
+    --accent-gold: #f1c40f;
+    --bg-dark: #0b0e14;
+    --panel-bg: rgba(31, 31, 45, 0.95);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --shadow-heavy: 0 10px 30px rgba(0, 0, 0, 0.7);
+    --card-width: 100px;
+    --card-height: 145px;
+}
+
 body {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background: #0b0e14;
+    background: var(--bg-dark);
     color: #e0e0e0;
     margin: 0;
     height: 100vh;
@@ -12,7 +23,7 @@ body {
 
 .hidden { display: none !important; }
 
-/* --- TELA DE LOGIN --- */
+/* --- TELA DE LOGIN E OVERLAYS --- */
 .overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -22,67 +33,110 @@ body {
     z-index: 1000;
 }
 
+#rewardScreen, #minigameOverlay {
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(12px);
+    z-index: 2000;
+}
+
 .login-box {
-    background: rgba(31, 31, 45, 0.95);
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 0 30px rgba(74, 144, 226, 0.2);
+    background: var(--panel-bg);
+    padding: 35px;
+    border-radius: 24px;
+    box-shadow: 0 0 50px rgba(74, 144, 226, 0.15);
     text-align: center;
-    width: 320px;
+    width: 340px;
     border: 1px solid rgba(74, 144, 226, 0.3);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(15px);
     display: flex;
     flex-direction: column;
 }
 
 .login-logo {
-    width: 140px;
+    width: 120px;
     height: auto;
-    margin: 0 auto 15px auto;
+    margin: 0 auto 20px auto;
+    filter: drop-shadow(0 0 10px var(--primary-blue));
     border-radius: 12px;
 }
 
-.login-box h1 { color: #4a90e2; margin: 0 0 5px 0; font-size: 1.5rem; }
+.login-box h1 { color: var(--primary-blue); margin: 0 0 5px 0; font-size: 1.5rem; }
 .login-box p { font-size: 0.85rem; margin-bottom: 15px; color: #aaa; }
 
-.login-box input, .login-input, select {
+.login-box input, .login-input, select, #minigameInput {
     width: 100%;
-    padding: 12px;
-    margin: 6px 0;
-    border-radius: 8px;
+    padding: 14px;
+    margin: 8px 0;
+    border-radius: 10px;
     border: 1px solid #333;
-    background: #12141d;
+    background: rgba(18, 20, 29, 0.8);
     color: white;
     box-sizing: border-box;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     outline: none;
+    text-align: center;
+    transition: 0.3s;
+}
+
+.login-box input:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 10px rgba(74, 144, 226, 0.3);
+}
+
+/* --- MINIGAME (CIENTISTA) --- */
+.minigame-container {
+    background: #1f1f2e;
+    padding: 40px;
+    border-radius: 20px;
+    border: 2px solid #9b59b6;
+    box-shadow: 0 0 40px rgba(155, 89, 182, 0.4);
+    text-align: center;
+    width: 400px;
+}
+
+.timer-container {
+    width: 100%; height: 12px; background: #111;
+    border-radius: 6px; overflow: hidden; margin-bottom: 25px;
+    border: 1px solid #444;
+}
+
+#minigameTimerBar {
+    height: 100%;
+    background: linear-gradient(90deg, #9b59b6, #e056fd);
+    width: 100%;
+    transition: width 0.1s linear;
+}
+
+#minigamePrompt {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 20px 0;
+    color: #fff;
 }
 
 /* --- ESTRUTURA PRINCIPAL --- */
 .app-container {
     display: flex;
-    width: 100vw;
-    height: 100vh;
-    padding: 10px;
+    width: 100vw; height: 100vh;
+    padding: 15px;
     box-sizing: border-box;
-    gap: 15px;
+    gap: 20px;
 }
 
 section {
-    border-radius: 12px;
-    border: 1px solid #2d3436;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
 }
 
 /* --- SEÇÃO DE HÁBITOS --- */
 .habits-section { 
-    flex: 1; 
-    min-width: 300px; 
-    background: #12141d; 
+    flex: 0 0 350px; 
+    background: rgba(18, 20, 29, 0.7);
+    backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
     padding: 20px;
     overflow-y: auto;
-    border: 2px solid #2d3436;
     box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
 }
 
@@ -111,40 +165,46 @@ section {
     background: #2d3436;
     color: #fff;
     border: 1px solid #444;
-    padding: 5px 10px;
-    border-radius: 4px;
+    padding: 5px 12px;
+    border-radius: 6px;
     font-size: 0.75rem;
     cursor: pointer;
+    transition: 0.2s;
 }
+
+.btn-advance:hover { background: #444; }
 
 .tab-controls {
     display: flex;
     gap: 10px;
+    margin-bottom: 10px;
 }
 
 .tab-btn {
-    background: #2d3436;
+    flex: 1;
+    background: rgba(255,255,255,0.05);
     color: #aaa;
     border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+    padding: 10px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 0.8rem;
+    transition: 0.3s;
 }
 
 .tab-btn.active {
-    background: #4a90e2;
+    background: var(--primary-blue);
     color: white;
+    box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
 }
 
-/* --- MENU CRIADOR DE HÁBITOS --- */
+/* --- CRIADOR DE HÁBITOS --- */
 .habit-creator {
-    background: rgba(45, 52, 54, 0.4);
+    background: rgba(255, 255, 255, 0.03);
     padding: 15px;
     border-radius: 15px;
-    border: 1px solid rgba(74, 144, 226, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     animation: slideDown 0.3s ease-out;
 }
 
@@ -167,8 +227,8 @@ section {
     gap: 8px;
     margin: 10px 0;
     padding: 10px;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
     justify-content: space-around;
     border: 1px solid #333;
 }
@@ -183,20 +243,25 @@ section {
 
 .emoji-item.selected, .emoji-item:hover {
     filter: grayscale(0);
-    transform: scale(1.1);
+    transform: scale(1.2);
 }
 
 /* --- LISTAGEM DE HÁBITOS --- */
+#habitList { display: flex; flex-direction: column; gap: 10px; }
+
 .habit-item {
-    background: rgba(255, 255, 255, 0.05);
-    margin-bottom: 10px;
+    background: linear-gradient(90deg, rgba(74, 144, 226, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
     padding: 12px;
-    border-radius: 8px;
+    border-radius: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-left: 4px solid #4a90e2;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-left: 4px solid var(--primary-blue);
+    transition: 0.2s;
 }
+
+.habit-item:hover { transform: translateX(5px); background: rgba(74, 144, 226, 0.15); }
 
 /* --- BOTÕES --- */
 .btn-main {
@@ -205,16 +270,18 @@ section {
     color: white;
     border: none;
     padding: 12px;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
     font-weight: bold;
     text-transform: uppercase;
-    box-shadow: 0 4px 0 #1e8449;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+    transition: 0.2s;
 }
+
+.btn-main:hover { transform: translateY(-2px); filter: brightness(1.1); }
 
 .btn-sugestao {
     background: linear-gradient(135deg, #2980b9, #3498db);
-    box-shadow: 0 4px 0 #1c5980;
     width: 100%;
     color: white;
     border: none;
@@ -223,6 +290,7 @@ section {
     cursor: pointer;
     font-size: 0.75rem;
     margin-bottom: 10px;
+    transition: 0.2s;
 }
 
 /* --- SEÇÃO DO JOGO --- */
@@ -231,8 +299,9 @@ section {
     display: flex; 
     flex-direction: column; 
     align-items: center; 
-    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('fundo.png');
+    background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.8)), url('fundo.png');
     background-size: cover;
+    background-position: center;
     padding: 20px;
     position: relative;
 }
@@ -243,174 +312,81 @@ section {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
     padding: 25px;
-    border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: var(--shadow-heavy);
     margin: 20px 0;
 }
 
-.sprite-container {
-    width: 110px; height: 110px;
-    border-radius: 50%;
-    border: 3px solid #4a90e2;
-    background: rgba(255,255,255,0.05);
-    overflow: hidden;
+.entity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
-.sprite-container img { width: 100%; height: 100%; object-fit: cover; }
+.sprite-container {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 25px rgba(0,0,0,0.5);
+    background: radial-gradient(circle, rgba(74, 144, 226, 0.2) 0%, transparent 70%);
+    overflow: hidden;
+    position: relative;
+}
+
+.sprite-container img { width: 100%; height: 100%; object-fit: contain; }
 
 .hp-bar {
-    width: 140px; height: 18px;
-    background: #222;
+    width: 180px; height: 16px;
+    background: #111;
     border-radius: 10px;
     border: 2px solid #000;
     position: relative;
     overflow: hidden;
     margin-top: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
 .hp-text-overlay {
     position: absolute;
     width: 100%;
     text-align: center;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: bold;
-    line-height: 18px;
+    line-height: 16px;
     color: white;
     text-shadow: 1px 1px 2px black;
+    z-index: 5;
 }
 
 #playerHp, #enemyHp { 
     background: linear-gradient(90deg, #ff4d4d, #b91d1d); 
     height: 100%;
-    transition: width 0.4s ease; 
+    transition: width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
 }
 
-/* --- MÃO DO JOGADOR (6 CARTAS) --- */
-.hand { 
-    display: flex; 
-    gap: 10px; 
-    justify-content: center; 
-    margin-top: auto;
-    padding: 10px;
-    width: 100%; 
-    height: 170px; 
-    align-items: flex-end;
-}
-
-.card {
-    width: 105px !important;
-    height: 150px !important;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 2px solid rgba(255,255,255,0.2);
-    background: #2c3e50;
-    box-shadow: 0 8px 15px rgba(0,0,0,0.5);
-    position: relative;
-    overflow: hidden;
-}
-
-.card:hover:not(.disabled) { 
-    transform: translateY(-20px) scale(1.1); 
-    border-color: #f1c40f; 
-    z-index: 10;
-}
-
-.card.disabled { filter: grayscale(1) brightness(0.4); cursor: not-allowed; }
-
-/* Custo de Energia no Canto da Carta */
-.card-cost {
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    background: #f1c40f;
-    color: #000;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-    font-size: 14px;
-    z-index: 5;
-    border: 2px solid #000;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-
-.card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    pointer-events: none;
-}
-
-/* --- HUD --- */
-.game-controls {
-    display: flex;
-    gap: 30px;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.stats {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #f1c40f;
-    text-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
-}
-
-.btn-turn {
-    background: linear-gradient(135deg, #e67e22, #d35400);
-    color: white;
-    border: none;
-    padding: 10px 25px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: bold;
-    text-transform: uppercase;
-    box-shadow: 0 4px 0 #a04000;
-}
-
-.btn-turn:active { transform: translateY(2px); box-shadow: 0 2px 0 #a04000; }
-
-#battleLog {
-    font-style: italic;
-    color: #bdc3c7;
-    margin-top: 5px;
-    font-size: 0.9rem;
-}
-
-/* --- ESCUDOS (PLAYER E ENEMY) --- */
+/* --- ESCUDOS --- */
 .shield-badge {
     background: linear-gradient(135deg, #3498db, #2980b9);
     color: white;
-    padding: 4px 10px;
+    padding: 4px 12px;
     border-radius: 12px;
     font-weight: bold;
     font-size: 0.85rem;
     display: inline-block;
     margin-top: 8px;
-    border: 2px solid #ecf0f1;
+    border: 1px solid rgba(255,255,255,0.4);
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Animação para o escudo aparecer com efeito */
 @keyframes popIn {
     from { transform: scale(0); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
-}
-
-/* Ajuste específico para as entidades na tela de batalha */
-.entity {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
 }
 
 #enemyNameDisplay, #playerNameDisplay {
@@ -422,9 +398,177 @@ section {
     font-size: 0.9rem;
 }
 
-/* Ocultar o escudo se o valor for 0 (opcional para limpeza visual) */
-/* Se quiser que o 0 apareça sempre, remova as linhas abaixo */
-#shieldDisplayEnemy:contains("🛡️ 0"), 
-#shieldDisplay:contains("🛡️ 0") {
-    opacity: 0.5;
+/* --- MÃO DO JOGADOR E CARTAS --- */
+.hand { 
+    display: flex; 
+    gap: 12px; 
+    justify-content: center; 
+    margin-top: auto;
+    padding: 20px;
+    width: 100%; 
+    height: 180px; 
+    align-items: flex-end;
+    perspective: 1000px;
+}
+
+.card {
+    width: var(--card-width) !important;
+    height: var(--card-height) !important;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255,255,255,0.3);
+    background: #1a1c23;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::after {
+    content: '';
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.card:hover:not(.disabled) { 
+    transform: translateY(-25px) rotateX(10deg);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 15px var(--accent-gold);
+    z-index: 100;
+}
+
+.card.disabled { filter: grayscale(1) brightness(0.3); cursor: not-allowed; }
+
+.card-cost {
+    position: absolute;
+    top: 6px; left: 6px;
+    background: var(--accent-gold);
+    color: #000;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center; align-items: center;
+    font-weight: bold;
+    font-size: 13px;
+    z-index: 5;
+    border: 1.5px solid #000;
+    box-shadow: 0 0 8px rgba(241, 196, 15, 0.5);
+}
+
+.card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+}
+
+/* Tipos de Cartas Refinadas */
+.card-ataque { background: linear-gradient(to bottom, #7f1d1d, #450a0a); border-color: #ef4444; }
+.card-defesa { background: linear-gradient(to bottom, #1e3a8a, #172554); border-color: #3b82f6; }
+.card-magia { background: linear-gradient(to bottom, #581c87, #2e1065); border-color: #a855f7; }
+.card-espada { background: linear-gradient(to bottom, #92400e, #451a03); border-color: #f59e0b; }
+.card-raio { background: linear-gradient(to bottom, #3f3f46, #18181b); border-color: #eab308; }
+
+/* --- HUD DE COMBATE --- */
+.game-controls {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    margin-bottom: 10px;
+    background: rgba(0,0,0,0.6);
+    padding: 10px 30px;
+    border-radius: 50px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.stats {
+    font-family: 'Courier New', monospace;
+    font-size: 1.2rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: #00ffcc;
+    text-shadow: 0 0 8px rgba(0, 255, 204, 0.5);
+}
+
+.btn-turn {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3);
+    transition: 0.2s;
+}
+
+.btn-turn:hover { filter: brightness(1.1); transform: scale(1.05); }
+
+#battleLog {
+    font-style: italic;
+    color: #bdc3c7;
+    margin-top: 5px;
+    font-size: 0.9rem;
+    height: 1.2rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+/* --- PARRY SYSTEM --- */
+#parryOverlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 3000;
+}
+.skill-check-container {
+    position: relative; width: 220px; height: 220px; 
+    border: 6px double rgba(255,255,255,0.5); 
+    border-radius: 50%;
+    box-shadow: 0 0 50px rgba(241, 196, 15, 0.2);
+}
+#skillZone {
+    position: absolute; width: 100%; height: 100%; border-radius: 50%;
+    border: 20px solid transparent; border-top-color: var(--accent-gold);
+    transform: rotate(0deg);
+}
+#skillNeedle {
+    position: absolute; width: 6px; height: 110px; 
+    background: linear-gradient(to top, transparent, #ff0000);
+    left: 50%; bottom: 50%; transform-origin: bottom center;
+    border-radius: 3px;
+}
+
+/* --- ANIMAÇÕES DE DANO --- */
+@keyframes shake {
+    0%, 100% { transform: translate(0,0); }
+    25% { transform: translate(-5px, 5px); }
+    50% { transform: translate(5px, -5px); }
+    75% { transform: translate(-5px, -5px); }
+}
+.damage-shake { animation: shake 0.25s cubic-bezier(.36,.07,.19,.97) both; }
+
+/* --- ESTILOS DO BOTÃO CONCLUIR (btn-main) --- */
+.btn-main {
+    background: linear-gradient(135deg, var(--primary-blue), #2980b9);
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.btn-main:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(74, 144, 226, 0.5);
+    background: linear-gradient(135deg, #5dade2, var(--primary-blue));
+}
+
+.btn-main:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 5px rgba(74, 144, 226, 0.4);
 }
