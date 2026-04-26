@@ -265,16 +265,18 @@ function startMinigame(type) {
         prompt.innerText = frase;
         minigameAnswer = frase;
     }
+    // LINHA CORRIGIDA:
     input.oninput = () => {
-        if (input.value.toLowerCase().trim() === minigameAnswer) winMinigame();
+        if (input.value.toLowerCase().trim() === minigameAnswer.toLowerCase()) winMinigame();
+};
     };
     clearInterval(minigameTimer);
     minigameTimer = setInterval(() => {
-        minigameTimeLeft -= (type === "math" ? 0.75 : 0.33); 
+        minigameTimeLeft -= (type === "math" ? 0.75 : 0.25); 
         document.getElementById('minigameTimerBar').style.width = minigameTimeLeft + "%";
         if (minigameTimeLeft <= 0) loseMinigame();
     }, 50);
-}
+
 
 function winMinigame() {
     clearInterval(minigameTimer);
@@ -630,7 +632,7 @@ function prepareEnemyAction() {
         }
         actions = [
             { text: "Sopro 🔥 (30+🛡️30)", type: "dragon_fire", val: 30 },
-            { text: "Descanso (+50 HP)", type: "dragon_rest", val: 50 },
+            { text: "Descanso (+75 HP)", type: "dragon_rest", val: 75 },
             { text: "Mordida (45 dano)", type: "dmg", val: 45 }
         ];
     } else if (enemy.name.includes("Cientista")) {
@@ -660,7 +662,7 @@ function prepareEnemyAction() {
 function prepareMinionAction() {
     if (!minion) return;
     let mActions = [
-        { text: "Ataque (15 dano)", type: "dmg", val: 15 },
+        { text: "Ataque (30 dano)", type: "dmg", val: 30 },
         { text: "Proteção (30🛡️ Boss)", type: "shield_boss", val: 30 }
     ];
     minion.nextAction = mActions[Math.floor(Math.random() * mActions.length)];
