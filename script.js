@@ -431,7 +431,8 @@ function playCard(uniqueId) {
 
             case "ataque_calculado":
                 let cardsInHand = currentHand.length - 1; 
-                let calcDamage = (card.power * cardsInHand) + player.dmgBuff;
+             // Dano base (8) + (8 * cartas restantes) + buffs
+                let calcDamage = card.power + (card.power * cardsInHand) + player.dmgBuff;;
                 let hpDamageCalc = Math.max(0, calcDamage - (targetEnt.enemyShield || 0));
                 targetEnt.enemyShield = Math.max(0, (targetEnt.enemyShield || 0) - calcDamage);
                 targetEnt.hp -= hpDamageCalc;
