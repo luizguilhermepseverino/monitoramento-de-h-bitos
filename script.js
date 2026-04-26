@@ -386,12 +386,24 @@ function playCard(uniqueId) {
                 break;
 
             case "execute":
-                if (targetEnt.hp <= card.power) { 
-                    targetEnt.hp = 0; 
-                    log(`EXECUÇÃO no ${targetEnt.name}!`); 
-                    shakeElement(document.getElementById('enemySprite'));
-                } else log("Alvo ainda muito forte!");
-                break;
+            // 1. Aplica o dano base de 40 (mais qualquer buff de dano que o jogador tenha)
+                let damageDealt = card.power + player.dmgBuff;
+                targetEnt.hp -= damageDealt;
+                log(`Boss Killer causou ${damageDealt} de dano!`);
+
+                 // 2. Verifica se a vida restante é menor que 60 para executar
+                 if (targetEnt.hp > 0 && targetEnt.hp < 60) {
+                    targetEnt.hp = 0;
+                    log(`🎯 LIMIAR ATINGIDO! O inimigo tinha menos de 60 HP e foi executado!`);
+                } else if (targetEnt.hp <= 0) {
+                    log(`O golpe foi fatal!`);
+                } else {
+                    log(`O alvo resistiu à execução.`);
+                }
+
+    player.dmgBuff = 0; // Consome o buff de dano após o ataque
+    shakeElement(document.getElementById('enemySprite'));
+    break;
 
             case "dark_atk":
                 let darkDmg = (card.power + player.dmgBuff);
