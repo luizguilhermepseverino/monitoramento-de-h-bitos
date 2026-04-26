@@ -12,6 +12,38 @@ const enemiesList = [
     { name: "Dragão do Prazo Final", hp: 300, maxHp: 300, color: "#c0392b", img: "dragao.png" }
 ];
 
+// Lista de sugestões temáticas
+const habitSuggestions = [
+    "Treinar 30min na Academia",
+    "Estudar JavaScript por 1 Hora",
+    "Beber 2L de Água",
+    "Comer uma Fruta no Lanche",
+    "Meditar por 10 Minutos",
+    "Ler 5 Páginas de um Livro",
+    "Organizar a Mesa de Trabalho",
+    "Praticar Alongamento",
+    "Revisar Matéria do ENEM",
+    "Caminhada de 20 Minutos"
+];
+
+function toggleSuggestions() {
+    const box = document.getElementById('suggestionBox');
+    box.classList.toggle('hidden');
+    
+    // Limpa a box e adiciona as sugestões como botões
+    box.innerHTML = ''; 
+    habitSuggestions.forEach(sugestao => {
+        const btn = document.createElement('button');
+        btn.innerText = sugestao;
+        btn.className = 'suggestion-item-btn';
+        btn.onclick = () => {
+            document.getElementById('habitInput').value = sugestao;
+            box.classList.add('hidden'); // Fecha o menu após escolher
+        };
+        box.appendChild(btn);
+    });
+}
+
 // --- CALENDÁRIO E HISTÓRICO ---
 const weekDays = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"];
 let currentDayIndex = 0;
@@ -77,6 +109,10 @@ const masterDeck = [
     { name: "Golpe", type: "atk", cost: 1, power: 15, img: "golpe.png", colorClass: "card-ataque" },
     { name: "Golpe", type: "atk", cost: 1, power: 15, img: "golpe.png", colorClass: "card-ataque" },
     { name: "Golpe", type: "atk", cost: 1, power: 15, img: "golpe.png", colorClass: "card-ataque" },
+    { name: "Golpe", type: "atk", cost: 1, power: 15, img: "golpe.png", colorClass: "card-ataque" },
+    { name: "Golpe", type: "atk", cost: 1, power: 15, img: "golpe.png", colorClass: "card-ataque" },
+    { name: "Escudo", type: "def", cost: 1, power: 20, img: "escudo.png", colorClass: "card-defesa" },
+    { name: "Escudo", type: "def", cost: 1, power: 20, img: "escudo.png", colorClass: "card-defesa" },
     { name: "Escudo", type: "def", cost: 1, power: 20, img: "escudo.png", colorClass: "card-defesa" },
     { name: "Escudo", type: "def", cost: 1, power: 20, img: "escudo.png", colorClass: "card-defesa" },
     { name: "Escudo", type: "def", cost: 1, power: 20, img: "escudo.png", colorClass: "card-defesa" },
@@ -248,10 +284,31 @@ function startMinigame(type) {
     const input = document.getElementById('minigameInput');
     const prompt = document.getElementById('minigamePrompt');
     const title = document.getElementById('minigameTitle');
+    
     overlay.classList.remove('hidden');
     input.value = "";
     input.focus();
     minigameTimeLeft = 100;
+
+    // Bloqueia o colar (Paste)
+    input.onpaste = (e) => {
+        e.preventDefault();
+        log("🚫 Sem trapaças! O Cientista exige digitação manual.");
+        return false;
+    };
+
+    // Bloqueia o arrastar e soltar texto (Drop)
+    input.ondrop = (e) => {
+        e.preventDefault();
+        return false;
+    };
+
+    // Bloqueia o menu de contexto (botão direito do mouse) para evitar o "Colar" por lá
+    input.oncontextmenu = (e) => {
+        e.preventDefault();
+        return false;
+    };
+
     if (type === "math") {
         let a = Math.floor(Math.random() * 15) + 5;
         let b = Math.floor(Math.random() * 15) + 5;
@@ -265,23 +322,42 @@ function startMinigame(type) {
         prompt.innerText = frase;
         minigameAnswer = frase;
     }
-    // LINHA CORRIGIDA:
+
+    // Define a verificação da resposta
     input.oninput = () => {
-        if (input.value.toLowerCase().trim() === minigameAnswer.toLowerCase()) winMinigame();
-};
+        if (input.value.toLowerCase().trim() === minigameAnswer.toLowerCase()) {
+            winMinigame();
+        }
     };
+
+    // O CRONÔMETRO PRECISA FICAR AQUI DENTRO!
     clearInterval(minigameTimer);
     minigameTimer = setInterval(() => {
-        minigameTimeLeft -= (type === "math" ? 0.75 : 0.25); 
-        document.getElementById('minigameTimerBar').style.width = minigameTimeLeft + "%";
-        if (minigameTimeLeft <= 0) loseMinigame();
-    }, 50);
+        // Ajustei a velocidade para o modo escrita ser um desafio justo
+        minigameTimeLeft -= (type === "math" ? 0.75 : 0.33); 
+        
+        const timerBar = document.getElementById('minigameTimerBar');
+        if (timerBar) {
+            timerBar.style.width = minigameTimeLeft + "%";
+        }
 
+        if (minigameTimeLeft <= 0) {
+            loseMinigame();
+        }
+    }, 50);
+} // Esta é a única chave que deve fechar a função principal
 
 function winMinigame() {
     clearInterval(minigameTimer);
     document.getElementById('minigameOverlay').classList.add('hidden');
-    log("Teste superado! Você esquivou do golpe.");
+
+    // Agora pegamos o dano da intenção do Boss e dividimos por 2
+    let mitigatedDmg = Math.floor(enemy.nextAction.val / 2);
+    
+    // Aplicamos o dano reduzido ao jogador
+    applyDamageToPlayer(mitigatedDmg);
+
+    log(`🔬 Reação contida! Você mitigou o impacto, mas recebeu ${mitigatedDmg} de dano.`);
     executeMinionActionAndFinish();
 }
 
@@ -303,11 +379,35 @@ function shuffleDeck() {
 }
 
 function drawHand() {
+    // Cartas iniciais que PODEM repetir na mão
+    const basicCards = ["Golpe", "Escudo"];
+
     while (currentHand.length < 6) {
         if (drawPile.length === 0) shuffleDeck();
+        
+        // Olhamos a primeira carta do baralho sem tirar ela ainda
+        const nextCard = drawPile[0]; 
+
+        // Verificamos se já existe uma carta com esse mesmo nome na mão
+        const alreadyInHand = currentHand.some(c => c.name === nextCard.name);
+
+        // Se for uma carta especial (Loot) e já estiver na mão, mandamos para o fim da fila
+        if (!basicCards.includes(nextCard.name) && alreadyInHand) {
+            // Move a carta para o final do deck para tentar pegar outra
+            drawPile.push(drawPile.shift()); 
+            
+            // Proteção: se o deck inteiro for de cartas repetidas, paramos para não travar o loop
+            const allRepeated = drawPile.every(c => currentHand.some(h => h.name === c.name));
+            if (allRepeated) break;
+            
+            continue; 
+        }
+
+        // Se passar nas regras, puxa a carta para a mão
         currentHand.push(drawPile.shift());
     }
 }
+
 
 function setTarget(target) {
     if (!minion && target === 'minion') return;
@@ -465,6 +565,8 @@ function playCard(uniqueId) {
 
 function endTurn() {
     if (!inBattle || skillCheckActive || !document.getElementById('minigameOverlay').classList.contains('hidden')) return; 
+    
+    // 1. Limpeza de escudos e aplicação de status negativos (Sangramento/Queimadura)
     enemy.enemyShield = 0;
     if (minion) minion.enemyShield = 0;
     if (enemy.bleedTurns > 0) { enemy.hp -= 10; enemy.bleedTurns--; }
@@ -472,31 +574,36 @@ function endTurn() {
     if (player.burnTurns > 0) { player.hp -= 8; player.burnTurns--; }
     updateUI();
 
+    // 2. Inicia o processamento do Boss
     setTimeout(() => {
         if (enemy.hp <= 0) { checkGameOver(); return; }
         
+        // A) Regra do Dragão (Convocar)
         if (enemy.nextAction.type === "summon_knight") {
             enemy.hasSummoned = true;
             log(`🐉 O Dragão convocou o Cavaleiro Sombrio!`);
-            minion = { name: "Lacaio Cavaleiro", hp: 100, maxHp: 100, img: "cavaleiro.png", nextAction: null, bleedTurns: 0, stunned: false, enemyShield: 0 };
+            minion = { name: "Lacaio Cavaleiro", hp: 170, maxHp: 170, img: "cavaleiro.png", nextAction: null, bleedTurns: 0, stunned: false, enemyShield: 0 };
             prepareMinionAction();
             updateUI();
             executeMinionActionAndFinish();
             return;
         }
 
-        if (enemy.name.includes("Cavaleiro") && ["dmg_heavy", "dmg", "knight_drain"].includes(enemy.nextAction.type)) {
+        // B) Minigame: Cavaleiro (Ataque Pesado)
+        if (enemy.name.includes("Cavaleiro") && enemy.nextAction.type === "dmg_heavy") {
             log("⚠️ DEFESA DE IMPACTO!");
             startSkillCheck();
-            return;
+            return; 
         } 
 
+        // C) Minigame: Cientista
         if (enemy.name.includes("Cientista") && (enemy.nextAction.type.startsWith("sci_") || enemy.nextAction.type === "dmg")) {
             log("🔬 REAÇÃO QUÍMICA!");
             startMinigame(enemy.nextAction.type === "sci_math" ? "math" : "typing");
             return;
         }
 
+        // D) Ações comuns e Dreno (Só executa se não estiver atordoado)
         if (!enemy.stunned) {
             switch(enemy.nextAction.type) {
                 case "dmg":
@@ -508,22 +615,52 @@ function endTurn() {
                     log(`${enemy.name} defendeu!`);
                     break;
                 case "knight_drain":
+                    // 1. Aplica o dano (O escudo do player protege o HP aqui)
+                    applyDamageToPlayer(enemy.nextAction.val);
+                    
+                    // 2. O Cavaleiro rouba o que sobrou do seu escudo para ele
+                    if (player.shield > 0) {
+                        log(`🛡️ O Cavaleiro drenou sua defesa! (+${player.shield} para ele)`);
+                        enemy.enemyShield += player.shield;
+                        player.shield = 0; 
+                    }
+                    
+                    // 3. O Cavaleiro se cura em 40 (Garantindo que não passe do HP máximo)
+                    enemy.hp = Math.min(enemy.maxHp, enemy.hp + 40); 
+                    
+                    log(`🍷 DRENO! ${enemy.name} causou dano e recuperou 40 de vida!`);
+                    
+                    updateUI(); 
+                    break;
+                    
+                    // 3. Cura o Cavaleiro (Independente do escudo)
+                    enemy.hp = Math.min(enemy.maxHp, enemy.hp + 40); 
+                    log(`🍷 DRENO! O Cavaleiro recuperou 40 de vida!`);
+                    
+                    updateUI(); 
+                    break;
                     applyDamageToPlayer(enemy.nextAction.val);
                     enemy.hp = Math.min(enemy.maxHp, enemy.hp + 40); 
-                    log(`${enemy.name} drenou vida!`);
+                    log(`🍷 DRENO! O Cavaleiro causou dano e recuperou 40 de vida!`);
+                    updateUI(); 
                     break;
                 case "dragon_fire":
                     applyDamageToPlayer(enemy.nextAction.val);
-                    player.burnTurns = 3; enemy.enemyShield += 30;
+                    player.burnTurns = 3; 
+                    enemy.enemyShield += 30;
                     log(`${enemy.name} soprou fogo!`);
                     break;
                 case "dragon_rest":
                     enemy.hp = Math.min(enemy.maxHp, enemy.hp + 50);
                     log(`${enemy.name} descansou.`);
+                    updateUI();
                     break;
             }
         }
+        
+        // 3. Finaliza a ação do Boss e passa para o Lacaio/Fim do turno
         executeMinionActionAndFinish();
+        
     }, 600);
 }
 
@@ -640,7 +777,7 @@ function prepareEnemyAction() {
         actions = [
             { text: "Cálculo Letal 📐", type: "sci_math", val: 50 },
             { text: "Hipótese Escrita 📝", type: "sci_type", val: 50 },
-            { text: "Lança-Chamas (30 dano)", type: "dmg", val: 30 }
+            { text: "Lança-Chamas (40 dano)", type: "dmg", val: 40 }
         ];
     } else if (enemy.name.includes("Cavaleiro")) {
         // Removido: Muralha (shield)
@@ -662,8 +799,8 @@ function prepareEnemyAction() {
 function prepareMinionAction() {
     if (!minion) return;
     let mActions = [
-        { text: "Ataque (30 dano)", type: "dmg", val: 30 },
-        { text: "Proteção (30🛡️ Boss)", type: "shield_boss", val: 30 }
+        { text: "Ataque (15 dano)", type: "dmg", val: 15 },
+        { text: "Proteção (15🛡️ Boss)", type: "shield_boss", val: 15 }
     ];
     minion.nextAction = mActions[Math.floor(Math.random() * mActions.length)];
 }
