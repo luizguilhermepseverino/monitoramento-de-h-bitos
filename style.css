@@ -548,18 +548,21 @@ section {
 
 /* --- ESTILOS DO BOTÃO CONCLUIR (btn-main) --- */
 .btn-main {
-    background: linear-gradient(135deg, var(--primary-blue), #2980b9);
-    color: #ffffff;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
+    width: 100%;
+    padding: 10px; /* Reduzido de 15px */
+    font-size: 0.9em; /* Reduzido de 1.1em */
     font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
     text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
+    color: #fff;
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    border: none;
+    border-radius: 8px; /* Mais sutil */
+    border-bottom: 4px solid #219150; /* Reduzido de 5px */
+    cursor: pointer;
+    transition: all 0.1s;
+    margin-top: 10px;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
 .btn-main:hover {
@@ -571,4 +574,151 @@ section {
 .btn-main:active {
     transform: translateY(1px);
     box-shadow: 0 2px 5px rgba(74, 144, 226, 0.4);
+}
+
+.btn-sugestao:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #2980b9 !important;
+}
+
+/* Estilo das sugestões dentro do menu */
+.suggestion-list {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid #4a90e2;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 15px;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Duas colunas */
+    gap: 8px;
+}
+
+.suggestion-item-btn {
+    background: #1a1a2e;
+    color: #bdc3c7;
+    border: 1px solid #34495e;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: 0.2s;
+}
+
+.suggestion-item-btn:hover {
+    background: #4a90e2;
+    color: white;
+    border-color: #fff;
+}
+
+/* O BOTÃO "CRIAR HÁBITO" (ESTILO HERÓICO) */
+.btn-main {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1em;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #fff;
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    border: none;
+    border-radius: 10px;
+    border-bottom: 5px solid #219150; /* Sombra sólida para parecer 3D */
+    cursor: pointer;
+    transition: all 0.1s;
+    margin-top: 10px;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.btn-main:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+    border-bottom-width: 7px;
+}
+
+.btn-main:active {
+    transform: translateY(3px);
+    border-bottom-width: 2px;
+}
+
+/* ESTILIZAÇÃO DO CAMPO DE TEXTO (INPUT) */
+/* LOCAL: Procure por #habitInput e substitua por este */
+#habitInput {
+    width: 100% !important;
+    max-width: 280px !important; /* Limita a largura para não esticar na tela toda */
+    height: 35px !important;     /* Força uma altura baixa e elegante */
+    padding: 5px 10px !important; /* Espaçamento interno mínimo */
+    font-size: 0.85rem !important;
+    background: rgba(15, 15, 25, 0.9) !important;
+    border: 1px solid #4a90e2 !important;
+    border-left: 4px solid #4a90e2 !important;
+    border-radius: 4px !important;
+    margin: 0 auto 10px auto !important; /* Centraliza e diminui a margem de baixo */
+    display: block !important;
+    color: white !important;
+}
+/* Efeito de brilho quando o jogador clica para digitar */
+#habitInput:focus {
+    border-color: #f1c40f; /* Muda para dourado no foco */
+    box-shadow: 0 0 15px rgba(241, 196, 15, 0.4), inset 0 0 5px rgba(0,0,0,0.5);
+    background: rgba(25, 25, 40, 0.9);
+}
+
+/* Estilização do texto de exemplo (Placeholder) */
+#habitInput::placeholder {
+    color: #7f8c8d;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+/* ESTILIZAÇÃO DO CAMPO DE TEXTO (INPUT) */
+#habitInput {
+    width: 100%;
+    background: rgba(15, 15, 25, 0.8); /* Fundo escuro semi-transparente */
+    border: 2px solid #4a90e2; /* Borda azul heróica */
+    border-radius: 8px;
+    padding: 12px 15px;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5); /* Sombra interna para profundidade */
+    margin-bottom: 15px;
+    border-left: 5px solid #4a90e2; /* Detalhe lateral para parecer um display */
+}
+
+/* Efeito de foco: quando você clica para digitar */
+#habitInput:focus {
+    border-color: #f1c40f;
+    box-shadow: 0 0 15px rgba(241, 196, 15, 0.3), inset 0 0 5px rgba(0,0,0,0.5);
+    background: rgba(25, 25, 40, 0.9);
+}
+
+/* Placeholder (o texto de exemplo) mais discreto */
+#habitInput::placeholder {
+    color: #576574;
+    font-style: italic;
+}
+
+
+
+/* Correção específica para o botão de Iniciar Batalha */
+#btnStartBattle {
+    width: auto; /* Deixa ele do tamanho do texto */
+    min-width: 200px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    background: linear-gradient(135deg, #e74c3c, #c0392b) !important; /* Vermelho sem verde */
+    border: none !important; 
+    border-bottom: 4px solid #962d22 !important;
+    box-shadow: 0 4px 15px rgba(192, 57, 43, 0.4) !important;
+}
+
+#btnStartBattle:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+#btnStartBattle:active {
+    transform: translateY(2px);
+    border-bottom-width: 2px !important;
 }
