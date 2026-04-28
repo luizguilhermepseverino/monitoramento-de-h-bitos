@@ -7,7 +7,7 @@ let gold = 0;
 const enemiesList = [
     { name: "Globin", hp: 45, maxHp: 45, color: "#27ae60", img: "globin.png" },
     { name: "Golem", hp: 90, maxHp: 90, color: "#e67e22", img: "golem.png" },
-    { name: "Cavaleiro Sombrio", hp: 225, maxHp: 225, color: "#2c3e50", img: "cavaleiro.png" },
+    { name: "Cavaleiro Sombrio", hp: 200, maxHp: 200, color: "#2c3e50", img: "cavaleiro.png" },
     { name: "Cientista", hp: 270, maxHp: 270, color: "#9b59b6", img: "cientista.png" },
     { name: "Dragão do Prazo Final", hp: 300, maxHp: 300, color: "#c0392b", img: "dragao.png" }
 ];
@@ -52,14 +52,14 @@ let habitChart;
 
 // --- SISTEMA DE RESERVA DE ENERGIA ---
 let energyBank = 0;
-const AUTO_PULL_AMOUNT = 4; 
+const AUTO_PULL_AMOUNT = 3; 
 let inBattle = false;
 
 // --- ESTADO DO JOGADOR E INIMIGO ---
 let player = { 
     hp: 100, shield: 0, energy: 0, name: "Herói", 
     dmgBuff: 0, gender: "Masculino", burnTurns: 0, 
-    tookDamageThisTurn: false 
+    tookDamageThisTurn: false, weaknessTurns: 0
 };
 let overloadedNextTurn = false;
 let lastPlayedCard = null;
@@ -94,7 +94,7 @@ let availableRewards = [
     { name: "Reciclar Mão", type: "recycle", cost: 0, power: 0, img: "reciclar.png", colorClass: "card-defesa" },
     { name: "Tempo Parado", type: "time_stop", cost: 0, power: 0, img: "tempo.png", colorClass: "card-magia" },
     { name: "Boss Killer", type: "execute", cost: 2, power: 40, img: "bosskiller.png", colorClass: "card-espada" },
-    { name: "Ataque Sombrio", type: "dark_atk", cost: 2, power: 80, selfDamage: 20, img: "ataquesombrio.png", colorClass: "card-ataque" },
+    { name: "Ataque Sombrio", type: "dark_atk", cost: 2, power: 50, selfDamage: 10, img: "ataquesombrio.png", colorClass: "card-ataque" },
     { name: "Lâmina Sombria", type: "atk", effect: "bleed", cost: 2, power: 20, img: "laminasombria.png", colorClass: "card-espada" },
     { name: "Veredito do Arcanjo", type: "magia", cost: 3, power: 60, img: "veredito.png", colorClass: "card-magia" },
     { name: "Preciso", type: "pierce", cost: 2, power: 15, img: "preciso.png", colorClass: "card-espada" },
@@ -154,21 +154,43 @@ function buyItem(type, cost) {
 }
 
 function login() {
-    const email = document.getElementById('userEmail').value;
-    const name = document.getElementById('userName').value;
-    const pass = document.getElementById('userPass').value;
-    const gender = document.getElementById('userGender').value; 
+    console.log("Botão clicado!"); // Isso vai aparecer no F12 se o botão estiver funcionando
+
+    const email = document.getElementById('userEmail').value.trim();
+    const name = document.getElementById('userName').value.trim();
+    const pass = document.getElementById('userPass').value.trim();
+    const gender = document.getElementById('userGender').value;
+
     if (email.toLowerCase().endsWith("@gmail.com") && pass && name && gender) {
+        
+        // Verificação de segurança: se o objeto player não existir, nós criamos agora
+        if (typeof player === 'undefined') {
+            player = { hp: 100, energy: 0, shield: 0 };
+        }
+
         player.name = name;
         player.gender = gender;
+
+        // Atualiza os textos e imagens
         document.getElementById('playerNameDisplay').innerText = name; 
         document.getElementById('playerSprite').src = (gender === "Feminino") ? "heroi_mulher.png" : "heroi_homem.png";
-        document.getElementById('enemySprite').src = enemy.img;
+        
+        // Só tenta mudar o inimigo se o objeto enemy existir
+        if (typeof enemy !== 'undefined') {
+            document.getElementById('enemySprite').src = enemy.img;
+        }
+
+        // Muda a tela
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
-        updateUI();
+
+        // Verifica se a função updateUI existe antes de chamar
+        if (typeof updateUI === 'function') {
+            updateUI();
+        }
+        
     } else {
-        alert("Preencha todos os campos corretamente!");
+        alert("Preencha todos os campos corretamente! O e-mail deve ser @gmail.com");
     }
 }
 
@@ -195,7 +217,7 @@ function startBattle() {
 
 function refillEnergyFromBank() {
     player.energy = 0; 
-    let pullLimit = overloadedNextTurn ? 3 : AUTO_PULL_AMOUNT;
+    let pullLimit = overloadedNextTurn ? 2 : AUTO_PULL_AMOUNT;
     let amountToTake = Math.min(energyBank, pullLimit);
     energyBank -= amountToTake;
     player.energy = amountToTake; 
@@ -213,6 +235,9 @@ function refillEnergyFromBank() {
 
 function completeHabit(btn, pts) {
     energyBank += parseInt(pts); 
+    
+    showEnergyGain(pts); 
+
     habitHistoryData[currentDayIndex]++;
     const li = btn.parentElement;
     btn.remove(); 
@@ -334,7 +359,7 @@ function startMinigame(type) {
     clearInterval(minigameTimer);
     minigameTimer = setInterval(() => {
         // Ajustei a velocidade para o modo escrita ser um desafio justo
-        minigameTimeLeft -= (type === "math" ? 0.75 : 0.33); 
+        minigameTimeLeft -= (type === "math" ? 1 : 0.42);
         
         const timerBar = document.getElementById('minigameTimerBar');
         if (timerBar) {
@@ -351,21 +376,26 @@ function winMinigame() {
     clearInterval(minigameTimer);
     document.getElementById('minigameOverlay').classList.add('hidden');
 
-    // Agora pegamos o dano da intenção do Boss e dividimos por 2
     let mitigatedDmg = Math.floor(enemy.nextAction.val / 2);
-    
-    // Aplicamos o dano reduzido ao jogador
     applyDamageToPlayer(mitigatedDmg);
 
-    log(`🔬 Reação contida! Você mitigou o impacto, mas recebeu ${mitigatedDmg} de dano.`);
+    // 100% de certeza: define 2 turnos de fraqueza
+    player.weaknessTurns = 2; 
+
+    log(`🔬 Você conteve a explosão, mas o gás tóxico te deixou FRACO!`);
     executeMinionActionAndFinish();
 }
 
 function loseMinigame() {
     clearInterval(minigameTimer);
     document.getElementById('minigameOverlay').classList.add('hidden');
+    
     applyDamageToPlayer(50);
-    log("💥 ERRO CIENTÍFICO! 50 de dano crítico recebido!");
+
+    // 100% de certeza: define 2 turnos de fraqueza
+    player.weaknessTurns = 2; 
+
+    log("💥 ERRO CIENTÍFICO! Você sofreu dano crítico e está FRACO!");
     executeMinionActionAndFinish();
 }
 
@@ -415,12 +445,12 @@ function setTarget(target) {
     updateUI();
     log(`🎯 Mirando no ${target === 'enemy' ? enemy.name : minion.name}!`);
 }
-
-function playCard(uniqueId) {
-    if (!inBattle || skillCheckActive || !document.getElementById('minigameOverlay').classList.contains('hidden')) return; 
-    const cardIndex = currentHand.findIndex(c => c.id === uniqueId);
-    if (cardIndex === -1) return;
+function playCard(index) {
+    if (!inBattle || skillCheckActive || !document.getElementById('minigameOverlay').classList.contains('hidden')) return;
+    const cardIndex = index;
     const card = currentHand[cardIndex];
+
+    if (!card) return;
 
     if (player.energy >= card.cost) {
         player.energy -= card.cost;
@@ -430,7 +460,16 @@ function playCard(uniqueId) {
         switch(card.type) {
             case "retaliation":
                 let baseDmg = player.tookDamageThisTurn ? (card.power * 2) : card.power;
-                let totalRetalDmg = baseDmg + player.dmgBuff;
+                let totalRetalDmg = calculatePlayerDamage(baseDmg); // <-- MUDOU AQUI
+                let hpDmg = Math.max(0, totalRetalDmg - (targetEnt.enemyShield || 0));
+                targetEnt.enemyShield = Math.max(0, (targetEnt.enemyShield || 0) - totalRetalDmg);
+                targetEnt.hp -= hpDmg;
+                shakeElement(document.getElementById('enemySprite'));
+                log(`Determinação! Causou ${totalRetalDmg} de dano${player.tookDamageThisTurn ? " (RETALIAÇÃO!)" : ""}.`);
+                player.dmgBuff = 0;
+                break;
+
+                return totalDmg;
                 let hpDmg = Math.max(0, totalRetalDmg - (targetEnt.enemyShield || 0));
                 targetEnt.enemyShield = Math.max(0, (targetEnt.enemyShield || 0) - totalRetalDmg);
                 targetEnt.hp -= hpDmg;
@@ -442,6 +481,7 @@ function playCard(uniqueId) {
             case "atk": 
             case "pierce": 
             case "magia":
+                let finalPower = calculatePlayerDamage(card.power || 0); // <-- MUDOU AQUI
                 let damageToHp = Math.max(0, finalPower - (targetEnt.enemyShield || 0));
                 targetEnt.enemyShield = Math.max(0, (targetEnt.enemyShield || 0) - finalPower);
                 targetEnt.hp -= damageToHp;
@@ -488,13 +528,10 @@ function playCard(uniqueId) {
                 break;
 
             case "execute":
-            // 1. Aplica o dano base de 40 (mais qualquer buff de dano que o jogador tenha)
-                let damageDealt = card.power + player.dmgBuff;
+                let damageDealt = calculatePlayerDamage(card.power); // <-- MUDOU AQUI
                 targetEnt.hp -= damageDealt;
                 log(`Boss Killer causou ${damageDealt} de dano!`);
-
-                 // 2. Verifica se a vida restante é menor que 60 para executar
-                 if (targetEnt.hp > 0 && targetEnt.hp < 60) {
+                if (targetEnt.hp > 0 && targetEnt.hp < 60) {
                     targetEnt.hp = 0;
                     log(`🎯 LIMIAR ATINGIDO! O inimigo tinha menos de 60 HP e foi executado!`);
                 } else if (targetEnt.hp <= 0) {
@@ -502,13 +539,12 @@ function playCard(uniqueId) {
                 } else {
                     log(`O alvo resistiu à execução.`);
                 }
-
-    player.dmgBuff = 0; // Consome o buff de dano após o ataque
-    shakeElement(document.getElementById('enemySprite'));
-    break;
+                player.dmgBuff = 0; 
+                shakeElement(document.getElementById('enemySprite'));
+                break;
 
             case "dark_atk":
-                let darkDmg = (card.power + player.dmgBuff);
+                let darkDmg = calculatePlayerDamage(card.power); // <-- MUDOU AQUI
                 targetEnt.hp -= darkDmg;
                 applyDamageToPlayer(card.selfDamage);
                 log(`Ataque Sombrio no ${targetEnt.name}!`);
@@ -533,8 +569,8 @@ function playCard(uniqueId) {
 
             case "ataque_calculado":
                 let cardsInHand = currentHand.length - 1; 
-             // Dano base (8) + (8 * cartas restantes) + buffs
-                let calcDamage = card.power + (card.power * cardsInHand) + player.dmgBuff;;
+                let baseCalcDamage = card.power + (card.power * cardsInHand);
+                let calcDamage = calculatePlayerDamage(baseCalcDamage); // <-- MUDOU AQUI
                 let hpDamageCalc = Math.max(0, calcDamage - (targetEnt.enemyShield || 0));
                 targetEnt.enemyShield = Math.max(0, (targetEnt.enemyShield || 0) - calcDamage);
                 targetEnt.hp -= hpDamageCalc;
@@ -573,6 +609,9 @@ function endTurn() {
     if (minion && minion.bleedTurns > 0) { minion.hp -= 10; minion.bleedTurns--; }
     if (player.burnTurns > 0) { player.hp -= 8; player.burnTurns--; }
     updateUI();
+    // <-- ADICIONADO: Reduz o contador de fraqueza
+    if (player.weaknessTurns > 0) { player.weaknessTurns--; } 
+    // ...
 
     // 2. Inicia o processamento do Boss
     setTimeout(() => {
@@ -614,39 +653,29 @@ function endTurn() {
                     enemy.enemyShield += enemy.nextAction.val;
                     log(`${enemy.name} defendeu!`);
                     break;
-                case "knight_drain":
-                    // 1. Aplica o dano (O escudo do player protege o HP aqui)
-                    applyDamageToPlayer(enemy.nextAction.val);
-                    
-                    // 2. O Cavaleiro rouba o que sobrou do seu escudo para ele
-                    if (player.shield > 0) {
-                        log(`🛡️ O Cavaleiro drenou sua defesa! (+${player.shield} para ele)`);
-                        enemy.enemyShield += player.shield;
-                        player.shield = 0; 
-                    }
-                    
-                    // 3. O Cavaleiro se cura em 40 (Garantindo que não passe do HP máximo)
-                    enemy.hp = Math.min(enemy.maxHp, enemy.hp + 40); 
-                    
-                    log(`🍷 DRENO! ${enemy.name} causou dano e recuperou 40 de vida!`);
-                    
-                    updateUI(); 
-                    break;
-                    
-                    // 3. Cura o Cavaleiro (Independente do escudo)
-                    enemy.hp = Math.min(enemy.maxHp, enemy.hp + 40); 
-                    log(`🍷 DRENO! O Cavaleiro recuperou 40 de vida!`);
-                    
-                    updateUI(); 
-                    break;
-                    applyDamageToPlayer(enemy.nextAction.val);
-                    enemy.hp = Math.min(enemy.maxHp, enemy.hp + 40); 
-                    log(`🍷 DRENO! O Cavaleiro causou dano e recuperou 40 de vida!`);
-                    updateUI(); 
-                    break;
+            case "knight_drain":
+                if (player.shield > 0) {
+                // 🛡️ ROUBA APENAS ESCUDO
+                let stolenShield = player.shield;
+
+                enemy.enemyShield += stolenShield;
+                player.shield = 0;
+
+                log(`🛡️ O Cavaleiro drenou ${stolenShield} de escudo!`);
+                } else {
+                // ❤️ SEM ESCUDO → CAUSA DANO NA VIDA
+                applyDamageToPlayer(enemy.nextAction.val);
+                log(`🍷 DRENO! ${enemy.name} drenou sua vida!`);
+                }
+
+                // Cura sempre acontece
+                enemy.hp = Math.min(enemy.maxHp, enemy.hp + 20); 
+                log(`+20 HP para o Cavaleiro.`);
+
+            updateUI(); 
+            break;
                 case "dragon_fire":
                     applyDamageToPlayer(enemy.nextAction.val);
-                    player.burnTurns = 3; 
                     enemy.enemyShield += 30;
                     log(`${enemy.name} soprou fogo!`);
                     break;
@@ -696,68 +725,178 @@ function finishEnemyTurn() {
     updateUI();
     checkGameOver();
 }
-
+function getCardDescription(card) {
+    switch(card.type) {
+        case "atk": 
+        case "pierce": return `Causa ${card.power} de dano ao inimigo.`;
+        case "def": return `Ganha ${card.power} de escudo.`;
+        case "magia": return `Dano Mágico: ${card.power}.`;
+        case "energy": return `Ganha ${card.power} de energia e compra 2 cartas.`;
+        case "execute": return `Dano: ${card.power}. Executa instantaneamente se o HP for menor que 60.`;
+        case "dark_atk": return `Causa ${card.power} de dano, mas você sofre dano de volta.`;
+        case "retaliation": return `Dano: ${card.power}. O dano é DOBRADO se você sofreu dano neste turno.`;
+        case "time_stop": return `Atordoa os inimigos por 1 turno e ganha +1⚡.`;
+        case "loop": return `Retorna a última carta jogada para a sua mão.`;
+        case "sobrecarga": return `Ganha +3⚡ agora, mas limita a energia no próximo turno.`;
+        case "ataque_calculado": return `Dano base: ${card.power}. Aumenta com base nas cartas na sua mão.`;
+        case "recycle": return `Descarta sua mão atual e compra cartas novas.`;
+        default: return `Um efeito misterioso...`;
+    }
+}
 // --- INTERFACE ---
 function updateUI() {
+    // =========================
+    // --- REFERÊNCIAS BASE ---
+    // =========================
+    const handDiv = document.getElementById('playerHand');
+    const enemyName = document.getElementById('enemyNameDisplay');
+    const intentText = document.getElementById('intentText');
+
     const activeEnemy = (currentTarget === 'minion' && minion) ? minion : enemy;
 
-    if(document.getElementById('enemyNameDisplay')) document.getElementById('enemyNameDisplay').innerText = activeEnemy.name;
-    if(DOM.enemySprite) DOM.enemySprite.src = activeEnemy.img || "dragao.png";
+    // =========================
+    // --- INIMIGO ---
+    // =========================
+    if (enemyName) enemyName.innerText = activeEnemy.name;
 
-    if(DOM.enemyHp) {
+    if (DOM.enemySprite) DOM.enemySprite.src = activeEnemy.img || "dragao.png";
+
+    if (DOM.enemyHp) {
         const hpPct = (activeEnemy.hp / activeEnemy.maxHp) * 100;
         DOM.enemyHp.style.width = Math.max(0, hpPct) + "%";
     }
-    if(DOM.enemyHpText) DOM.enemyHpText.innerText = `${Math.max(0, Math.floor(activeEnemy.hp))} / ${activeEnemy.maxHp}`;
-    if(DOM.shieldEnemy) DOM.shieldEnemy.innerText = `🛡️ ${activeEnemy.enemyShield || 0}`;
 
-    if(DOM.playerHp) DOM.playerHp.style.width = Math.max(0, player.hp) + "%";
-    if(DOM.playerHpText) DOM.playerHpText.innerText = `${Math.max(0, Math.floor(player.hp))} / 100`;
-    if(DOM.energyStat) DOM.energyStat.innerText = player.energy;
-    if(DOM.shieldPlayer) DOM.shieldPlayer.innerText = `🛡️ ${player.shield}`;
-    if(DOM.energyBank) DOM.energyBank.innerText = `Reserva: ${energyBank}⚡`;
+    if (DOM.enemyHpText) {
+        DOM.enemyHpText.innerText = `${Math.max(0, Math.floor(activeEnemy.hp))} / ${activeEnemy.maxHp}`;
+    }
 
-    if(document.getElementById('goldValue')) document.getElementById('goldValue').innerText = gold;
-    if(document.getElementById('btnGoldDisplay')) document.getElementById('btnGoldDisplay').innerText = gold;
+    if (DOM.shieldEnemy) {
+        DOM.shieldEnemy.innerText = `🛡️ ${activeEnemy.enemyShield || 0}`;
+    }
 
-    let combinedIntent = (enemy.nextAction) ? `Boss: ${enemy.nextAction.text}` : "Aguardando...";
-    if (minion && minion.hp > 0 && minion.nextAction) combinedIntent += ` | Lacaio: ${minion.nextAction.text}`;
-    if (document.getElementById('intentText')) document.getElementById('intentText').innerText = combinedIntent;
+    // =========================
+    // --- PLAYER ---
+    // =========================
+    if (DOM.playerHp) DOM.playerHp.style.width = Math.max(0, player.hp) + "%";
+    if (DOM.playerHpText) DOM.playerHpText.innerText = `${Math.max(0, Math.floor(player.hp))} / 100`;
+    if (DOM.energyStat) DOM.energyStat.innerText = player.energy;
+    if (DOM.shieldPlayer) DOM.shieldPlayer.innerText = `🛡️ ${player.shield}`;
+    if (DOM.energyBank) DOM.energyBank.innerText = `Reserva: ${energyBank}⚡`;
+    if (player.weaknessTurns > 0) { 
+    player.weaknessTurns--; 
+}
 
+    // =========================
+    // --- OURO ---
+    // =========================
+    const goldUI = document.getElementById('goldValue');
+    const goldBtn = document.getElementById('btnGoldDisplay');
+
+    if (goldUI) goldUI.innerText = gold;
+    if (goldBtn) goldBtn.innerText = gold;
+
+    // =========================
+    // --- INTENÇÃO DO INIMIGO ---
+    // =========================
+    let combinedIntent = enemy.nextAction
+        ? `Boss: ${enemy.nextAction.text}`
+        : "Aguardando...";
+
+    if (minion && minion.hp > 0 && minion.nextAction) {
+        combinedIntent += ` | Lacaio: ${minion.nextAction.text}`;
+    }
+
+    if (intentText) intentText.innerText = combinedIntent;
+
+    // =========================
+    // --- SELETOR DE ALVO ---
+    // =========================
     let targetUI = document.getElementById('targetSelectorContainer');
+
     if (minion && minion.hp > 0) {
         if (!targetUI) {
             targetUI = document.createElement('div');
             targetUI.id = 'targetSelectorContainer';
             targetUI.style.margin = '10px auto';
-            const handDiv = document.getElementById('playerHand');
+
             handDiv.parentNode.insertBefore(targetUI, handDiv);
         }
+
         targetUI.style.display = 'block';
+
         targetUI.innerHTML = `
-            <div style="display: flex; justify-content: center; align-items: center; gap: 15px; background: #222; padding: 8px 15px; border-radius: 8px; border: 1px solid #444; width: fit-content; margin: 0 auto;">
-                <button onclick="setTarget('enemy')" style="padding: 8px 12px; background: ${currentTarget === 'enemy' ? '#c0392b' : '#333'}; color: white; border-radius: 5px; cursor: pointer; border: none; font-weight: bold;">🎯 Focar Boss</button>
-                <div style="text-align: center; min-width: 180px;">
-                    <h4 style="margin: 0; color: #fff; font-size: 0.95em;">${minion.name}</h4>
-                    <p style="margin: 3px 0 0 0; font-size: 0.8em; color: #ff7675;">❤️ HP: ${Math.max(0, Math.floor(minion.hp))} / ${minion.maxHp}</p>
+            <div style="display:flex; gap:15px; align-items:center; justify-content:center; background:#222; padding:8px 15px; border-radius:8px; border:1px solid #444;">
+                <button onclick="setTarget('enemy')" 
+                    style="background:${currentTarget === 'enemy' ? '#c0392b' : '#333'}; color:white; padding:8px 12px; border:none; border-radius:5px; cursor:pointer;">
+                    🎯 Boss
+                </button>
+
+                <div style="text-align:center;">
+                    <strong style="color:white;">${minion.name}</strong><br>
+                    <small style="color:#ff7675;">HP: ${Math.max(0, Math.floor(minion.hp))} / ${minion.maxHp}</small>
                 </div>
-                <button onclick="setTarget('minion')" style="padding: 8px 12px; background: ${currentTarget === 'minion' ? '#2c3e50' : '#333'}; color: white; border-radius: 5px; cursor: pointer; border: none; font-weight: bold;">🎯 Focar Lacaio</button>
+
+                <button onclick="setTarget('minion')" 
+                    style="background:${currentTarget === 'minion' ? '#2c3e50' : '#333'}; color:white; padding:8px 12px; border:none; border-radius:5px; cursor:pointer;">
+                    🎯 Lacaio
+                </button>
             </div>
         `;
-    } else if (targetUI) targetUI.style.display = 'none';
+    } else if (targetUI) {
+        targetUI.style.display = 'none';
+    }
 
-    const handDiv = document.getElementById('playerHand');
-    if(handDiv) {
-        handDiv.innerHTML = "";
-        currentHand.forEach(card => {
-            const div = document.createElement('div');
-            const canAfford = player.energy >= card.cost;
-            div.className = `card ${card.colorClass} ${!canAfford ? 'disabled' : ''}`;
-            div.innerHTML = `<div class="card-cost">${card.cost}</div><img src="${card.img}">`;
-            if(canAfford) div.onclick = () => playCard(card.id);
-            handDiv.appendChild(div);
+    // =========================
+    // --- CARTAS NA MÃO ---
+    // =========================
+    if (handDiv) {
+        handDiv.innerHTML = '';
+
+currentHand.forEach((card, index) => {
+    const cardEl = document.createElement('div');
+    cardEl.className = `card ${card.colorClass}`;
+
+    // 🔥 VERIFICA ENERGIA
+    if (player.energy < card.cost) {
+        cardEl.classList.add('disabled');
+    } else {
+        cardEl.onclick = () => playCard(index);
+    }
+
+            cardEl.innerHTML = `
+    <div class="card-cost">${card.cost}</div>
+    <img src="${card.img}" alt="${card.name}">
+    
+    <div class="card-name">${card.name}</div>
+
+    <!-- 🔥 TOOLTIP -->
+    <div class="card-tooltip">
+        <b>${card.name}</b><br>
+        ${getCardDescription(card)}
+    </div>
+`;
+
+            handDiv.appendChild(cardEl);
         });
     }
+}
+   // Substitua o loop currentHand.forEach inteiro dentro de updateUI() por este:
+// === FUNÇÃO PARA ADICIONAR HÁBITOS ===
+
+
+
+// Essa função serve para preparar os cliques nos emojis do menu
+function setupEmojiSelection() {
+    const emojis = document.querySelectorAll('.emoji-item');
+    emojis.forEach(emoji => {
+        emoji.onclick = () => {
+            // Remove a seleção dos outros e coloca neste
+            emojis.forEach(e => e.classList.remove('selected'));
+            emoji.classList.add('selected');
+            // Atualiza a variável global que o addHabit usa
+            selectedIcon = emoji.dataset.icon;
+        };
+    });
 }
 
 function prepareEnemyAction() {
@@ -769,21 +908,21 @@ function prepareEnemyAction() {
         }
         actions = [
             { text: "Sopro 🔥 (30+🛡️30)", type: "dragon_fire", val: 30 },
-            { text: "Descanso (+75 HP)", type: "dragon_rest", val: 75 },
+            { text: "Descanso (+50 HP)", type: "dragon_rest", val: 50 },
             { text: "Mordida (45 dano)", type: "dmg", val: 45 }
         ];
     } else if (enemy.name.includes("Cientista")) {
         // Removido: Campo de Força (shield)
         actions = [
-            { text: "Cálculo Letal 📐", type: "sci_math", val: 50 },
-            { text: "Hipótese Escrita 📝", type: "sci_type", val: 50 },
-            { text: "Lança-Chamas (40 dano)", type: "dmg", val: 40 }
+            { text: "Cálculo Letal 📐 (60 dano)", type: "sci_math", val: 60 },
+            { text: "Hipótese Escrita 📝 (70 dano)", type: "sci_type", val: 70 },
+            { text: "Lança-Chamas (40 dano)", type: "dmg", val: 50 }
         ];
     } else if (enemy.name.includes("Cavaleiro")) {
         // Removido: Muralha (shield)
         actions = [
-            { text: "Dreno (35 + Cura 40)", type: "knight_drain", val: 35 },
-            { text: "Esmagar (PARRY!)", type: "dmg_heavy", val: 35 }
+            { text: "Dreno (25 + Cura 25)", type: "knight_drain", val: 35 },
+            { text: "Esmagar 30 de dano(PARRY!)", type: "dmg_heavy", val: 30 }
         ];
     } else {
         actions = [
@@ -823,31 +962,57 @@ function checkGameOver() {
         alert("GAME OVER!"); location.reload();
     }
 }
-
 function showRewardChoice() {
     if (availableRewards.length < 2) {
         nextStageSetup();
         return;
     }
+
     let idx1 = Math.floor(Math.random() * availableRewards.length);
     let idx2;
     do { idx2 = Math.floor(Math.random() * availableRewards.length); } while (idx1 === idx2);
+
     const card1 = availableRewards[idx1];
     const card2 = availableRewards[idx2];
+
     const screen = document.getElementById('rewardScreen');
     const container = document.getElementById('rewardCardDisplay');
+
     screen.classList.remove('hidden');
+
     container.innerHTML = `
         <h3 style="color: white; margin-bottom: 20px;">Escolha sua Recompensa:</h3>
+
         <div style="display: flex; gap: 30px; justify-content: center; align-items: center;">
+
             <div onclick="claimSpecificReward(${idx1})" style="cursor:pointer; text-align:center;">
-                <div class="card ${card1.colorClass}"><div class="card-cost">${card1.cost}</div><img src="${card1.img}"></div>
+                <div class="card ${card1.colorClass}">
+                    <div class="card-cost">${card1.cost}</div>
+                    <img src="${card1.img}">
+
+                    <!-- TOOLTIP -->
+                    <div class="card-tooltip">
+                        <b>${card1.name}</b><br>
+                        ${getCardDescription(card1)}
+                    </div>
+                </div>
                 <p style="color:white; font-weight:bold; margin-top:10px;">${card1.name}</p>
             </div>
+
             <div onclick="claimSpecificReward(${idx2})" style="cursor:pointer; text-align:center;">
-                <div class="card ${card2.colorClass}"><div class="card-cost">${card2.cost}</div><img src="${card2.img}"></div>
+                <div class="card ${card2.colorClass}">
+                    <div class="card-cost">${card2.cost}</div>
+                    <img src="${card2.img}">
+
+                    <!-- TOOLTIP -->
+                    <div class="card-tooltip">
+                        <b>${card2.name}</b><br>
+                        ${getCardDescription(card2)}
+                    </div>
+                </div>
                 <p style="color:white; font-weight:bold; margin-top:10px;">${card2.name}</p>
             </div>
+
         </div>
     `;
 }
@@ -866,7 +1031,7 @@ function claimSpecificReward(index) {
 }
 
 function nextStageSetup() {
-    player.energy = 4;
+    player.energy = 3;
     player.shield = 0;
     player.burnTurns = 0;
     player.tookDamageThisTurn = false; 
@@ -929,23 +1094,150 @@ function switchTab(tabName) {
 function toggleHabitMenu() { document.getElementById('habitMenu').classList.toggle('hidden'); }
 
 // --- ADICIONADO: FUNÇÃO DE ADICIONAR HÁBITO FINALIZADA ---
+
+
+// Array global para guardar os hábitos ativos
+let meusHabitos = [];
+
+// Função robusta para adicionar hábitos (Corrige o bug de adicionar)
+function renderHabitsForToday() {
+    const listDOM = document.getElementById('habitList');
+    if (!listDOM) return;
+
+    listDOM.innerHTML = '';
+
+    const hoje = new Date().getDay(); // 0=Dom, 1=Seg...
+
+    meusHabitos.forEach(h => {
+        const mostrar =
+            h.tipo === "diario" ||
+            (h.tipo === "semanal" && h.dias.includes(hoje));
+
+        if (!mostrar) return;
+
+        const li = document.createElement('li');
+        li.className = 'habit-item';
+
+        li.innerHTML = `
+            <span>
+            ${h.nome} (+${h.recompensa}⚡)
+            ${h.tipo === "semanal" ? "📅 " + h.dias.join(",") : ""}
+                🔥 ${h.streak} dias
+            </span>
+            <button onclick="completeHabitNew(${h.id}, this)">✔</button>
+        `;
+
+        listDOM.appendChild(li);
+    });
+}
+function completeHabitNew(id, btn) {
+    const h = meusHabitos.find(h => h.id === id);
+    if (!h) return;
+
+    const hoje = new Date().toDateString();
+
+    if (h.lastDone === hoje) {
+        log("Você já fez isso hoje!");
+        return;
+    }
+
+    const ontem = new Date();
+    ontem.setDate(ontem.getDate() - 1);
+
+    if (h.lastDone === ontem.toDateString()) {
+        h.streak++;
+    } else {
+        h.streak = 1;
+    }
+
+    h.lastDone = hoje;
+
+    let bonus = Math.floor(h.streak / 3);
+    let total = h.recompensa + bonus;
+
+    energyBank += total;
+
+    log(`✔ ${h.nome}! +${total}⚡ (🔥${h.streak})`);
+
+    // animação
+    btn.parentElement.classList.add("habit-done");
+
+    renderHabitsForToday();
+    updateUI();
+}
+
+// Função para mostrar apenas os hábitos do dia de hoje
+
+
+// --- SELEÇÃO DE EMOJIS ---
+    function setupEmojiSelection() {
+    const emojis = document.querySelectorAll('.emoji-item');
+    emojis.forEach(emoji => {
+        emoji.onclick = () => {
+            emojis.forEach(e => e.classList.remove('selected'));
+            emoji.classList.add('selected');
+            selectedIcon = emoji.dataset.icon; // Define o ícone globalmente
+        };
+    });
+}
+
+function showEnergyGain(amount) {
+    const el = document.createElement('div');
+    el.className = "energy-gain";
+    el.innerText = `+${amount}⚡`;
+
+    document.body.appendChild(el);
+
+    setTimeout(() => el.remove(), 1000);
+}
 function addHabit() {
     const input = document.getElementById('habitInput');
-    const difficulty = document.getElementById('habitDifficulty').value;
-    const text = input.value.trim();
-    
-    if (text) {
-        const list = document.getElementById('pendingHabitList');
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <span>${selectedIcon} ${text} (${difficulty}⚡)</span>
-            <button onclick="completeHabit(this, ${difficulty})">✔</button>
-        `;
-        list.appendChild(li);
-        input.value = "";
-        toggleHabitMenu();
-        log(`Novo hábito adicionado: ${text}`);
-    } else {
-        alert("Digite uma descrição para o hábito!");
+    const dificuldade = document.getElementById('habitDifficulty');
+    const tipo = document.getElementById('habitType').value;
+
+    const nome = input.value.trim();
+    const recompensa = parseInt(dificuldade.value);
+
+    if (!nome) {
+        alert("Digite um hábito!");
+        return;
     }
+
+    const novoHabito = {
+        id: Date.now(),
+        nome: `${selectedIcon} ${nome}`,
+        tipo: tipo,
+        dias: [],
+        recompensa: recompensa,
+        streak: 0,
+        lastDone: null
+    };
+
+    // 🔥 AQUI entra o trecho que você perguntou
+    if (tipo === "semanal") {
+        novoHabito.dias = getSelectedDays();
+
+        if (novoHabito.dias.length === 0) {
+            alert("Selecione pelo menos um dia!");
+            return;
+        }
+    }
+
+    meusHabitos.push(novoHabito);
+
+    input.value = "";
+
+    renderHabitsForToday();
+}
+function getSelectedDays() {
+    const checkboxes = document.querySelectorAll('.day-checkbox:checked');
+    return Array.from(checkboxes).map(cb => parseInt(cb.value));
+}
+
+const tipoSelect = document.getElementById('habitType'); // cria no HTML depois
+const tipo = tipoSelect ? tipoSelect.value : "diario";
+
+function getSelectedDays() {
+    const checked = document.querySelectorAll('#weekDaysSelector input:checked');
+    return Array.from(checked).map(el => parseInt(el.value));
 }
