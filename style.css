@@ -36,8 +36,18 @@ body {
 #rewardScreen, #minigameOverlay {
     background: rgba(0, 0, 0, 0.92);
     backdrop-filter: blur(12px);
-    z-index: 2000;
+    z-index: 9999;
+    overflow: visible;
 }
+
+/* SELETOR SEPARADO */
+#rewardScreen .card:hover {
+    z-index: 9999;
+}
+
+
+
+
 
 .login-box {
     background: var(--panel-bg);
@@ -131,14 +141,13 @@ section {
 /* --- SEÇÃO DE HÁBITOS --- */
 .habits-section { 
     flex: 0 0 350px; 
-    background: rgba(18, 20, 29, 0.7);
+    background: rgba(20, 22, 30, 0.95);
+    color: #e0e0e0;
     backdrop-filter: blur(10px);
-    display: flex;
-    flex-direction: column;
+    box-shadow: var(--shadow-heavy);
     padding: 20px;
-    overflow-y: auto;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
 }
+
 
 .sidebar-header {
     display: flex;
@@ -158,7 +167,7 @@ section {
 .current-day {
     font-size: 1.1rem;
     font-weight: bold;
-    color: #fff;
+    color: #111;
 }
 
 .btn-advance {
@@ -183,7 +192,7 @@ section {
 .tab-btn {
     flex: 1;
     background: rgba(255,255,255,0.05);
-    color: #aaa;
+    color: #555;
     border: none;
     padding: 10px;
     border-radius: 8px;
@@ -250,35 +259,55 @@ section {
 #habitList { display: flex; flex-direction: column; gap: 10px; }
 
 .habit-item {
-    background: linear-gradient(90deg, rgba(74, 144, 226, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
-    padding: 12px;
-    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.15), rgba(0,0,0,0.4));
+    padding: 14px;
+    border-radius: 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border: 1px solid rgba(255,255,255,0.05);
-    border-left: 4px solid var(--primary-blue);
-    transition: 0.2s;
+    border-left: 6px solid var(--primary-blue);
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-.habit-item:hover { transform: translateX(5px); background: rgba(74, 144, 226, 0.15); }
+/* brilho animado */
+.habit-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: 0.5s;
+}
+
+.habit-item:hover::before {
+    left: 100%;
+}
+
+.habit-item:hover {
+    transform: translateX(6px) scale(1.02);
+    box-shadow: 0 0 15px rgba(74, 144, 226, 0.3);
+}
 
 /* --- BOTÕES --- */
 .btn-main {
-    width: 100%;
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
-    color: white;
+    background: #4a90e2;
     border: none;
-    padding: 12px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    text-transform: uppercase;
-    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
-    transition: 0.2s;
+    border-radius: 8px;
+    padding: 10px;
+    font-weight: 500;
+    text-transform: none;
+    box-shadow: none;
 }
 
-.btn-main:hover { transform: translateY(-2px); filter: brightness(1.1); }
+.btn-main:hover {
+    background: #3b7bd1;
+    transform: none;
+}
 
 .btn-sugestao {
     background: linear-gradient(135deg, #2980b9, #3498db);
@@ -421,7 +450,7 @@ section {
     background: #1a1c23;
     box-shadow: 0 10px 20px rgba(0,0,0,0.6);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .card::after {
@@ -434,7 +463,7 @@ section {
 .card:hover:not(.disabled) { 
     transform: translateY(-25px) rotateX(10deg);
     box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 15px var(--accent-gold);
-    z-index: 100;
+    z-index: 9999;
 }
 
 .card.disabled { filter: grayscale(1) brightness(0.3); cursor: not-allowed; }
@@ -549,15 +578,15 @@ section {
 /* --- ESTILOS DO BOTÃO CONCLUIR (btn-main) --- */
 .btn-main {
     width: 100%;
-    padding: 10px; /* Reduzido de 15px */
-    font-size: 0.9em; /* Reduzido de 1.1em */
+    padding: 15px;
+    font-size: 1.1em;
     font-weight: bold;
     text-transform: uppercase;
     color: #fff;
     background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
     border: none;
-    border-radius: 8px; /* Mais sutil */
-    border-bottom: 4px solid #219150; /* Reduzido de 5px */
+    border-radius: 10px;
+    border-bottom: 5px solid #219150;
     cursor: pointer;
     transition: all 0.1s;
     margin-top: 10px;
@@ -566,14 +595,14 @@ section {
 }
 
 .btn-main:hover {
+    filter: brightness(1.1);
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(74, 144, 226, 0.5);
-    background: linear-gradient(135deg, #5dade2, var(--primary-blue));
+    border-bottom-width: 7px;
 }
 
 .btn-main:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 5px rgba(74, 144, 226, 0.4);
+    transform: translateY(3px);
+    border-bottom-width: 2px;
 }
 
 .btn-sugestao:active {
@@ -611,23 +640,7 @@ section {
 }
 
 /* O BOTÃO "CRIAR HÁBITO" (ESTILO HERÓICO) */
-.btn-main {
-    width: 100%;
-    padding: 15px;
-    font-size: 1.1em;
-    font-weight: bold;
-    text-transform: uppercase;
-    color: #fff;
-    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
-    border: none;
-    border-radius: 10px;
-    border-bottom: 5px solid #219150; /* Sombra sólida para parecer 3D */
-    cursor: pointer;
-    transition: all 0.1s;
-    margin-top: 10px;
-    letter-spacing: 1px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-}
+
 
 .btn-main:hover {
     filter: brightness(1.1);
@@ -722,3 +735,122 @@ section {
     transform: translateY(2px);
     border-bottom-width: 2px !important;
 }
+
+/* Estilo para o Tooltip das Cartas */
+.card { position: relative; cursor: pointer; }
+
+.card-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 115%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.95);
+    color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.85em;
+    width: 160px;
+    text-align: center;
+    z-index: 5000;
+    border: 1px solid #f1c40f;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    pointer-events: none;
+}
+
+.card:hover .card-tooltip {
+    display: block;
+}
+
+/* Garante que o texto de HP fique sempre visível sobre a barra */
+.hp-text-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9em;
+    text-shadow: 1px 1px 2px black;
+    z-index: 5;
+}
+
+.hp-bar {
+    position: relative; /* Necessário para o overlay funcionar */
+    height: 20px;
+    background: #333;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid #555;
+}
+
+.energy-gain {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 28px;
+    font-weight: bold;
+    color: #f1c40f;
+    animation: floatUp 1s ease-out forwards;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -120%);
+    }
+}
+
+.habit-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.habit-icon {
+    font-size: 1.2rem;
+}
+
+.habit-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.habit-title
+
+.easy { color: #22c55e; }
+.medium { color: #f59e0b; }
+.hard { color: #ef4444; }
+
+.habit-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 2px solid #9ca3af;
+    cursor: pointer;
+    background: white;
+}
+
+.habit-check.done {
+    background: #22c55e;
+    border-color: #22c55e;
+}
+.habit-item.done {
+    opacity: 0.6;
+}
+
+.habit-item.done .habit-title {
+    text-decoration: line-through;
+}
+
