@@ -853,4 +853,71 @@ section {
 .habit-item.done .habit-title {
     text-decoration: line-through;
 }
+.hidden {
+    display: none !important;
+}
 
+#weekDaysSelector {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.days-flex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.days-flex label {
+    font-size: 0.8rem;
+    cursor: pointer;
+    background: #eee;
+    padding: 5px 8px;
+    border-radius: 4px;
+    color: #333;
+}
+
+.days-flex input:checked + label {
+    background: #3498db;
+    color: white;
+}
+/* 1. Garante que a barra lateral não ultrapasse a altura da tela */
+.habits-section {
+    height: 100vh; /* Ocupa 100% da altura da visão */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Evita que a barra inteira role, queremos rolar só a lista */
+}
+
+/* 2. Faz com que a área de conteúdo dos hábitos seja rolável */
+#tab-pending, #tab-history {
+    flex: 1; /* Ocupa o espaço restante */
+    overflow-y: auto; /* Ativa o scroll vertical quando necessário */
+    padding-right: 10px; /* Espaço para a barra de rolagem não cobrir o texto */
+}
+
+/* 3. Estilização opcional para a barra de rolagem ficar com "cara de jogo" */
+#tab-pending::-webkit-scrollbar, 
+#tab-history::-webkit-scrollbar {
+    width: 8px;
+}
+
+#tab-pending::-webkit-scrollbar-track, 
+#tab-history::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+#tab-pending::-webkit-scrollbar-thumb, 
+#tab-history::-webkit-scrollbar-thumb {
+    background: #3498db; /* Cor azul combinando com seu tema */
+    border-radius: 10px;
+}
+
+#tab-pending::-webkit-scrollbar-thumb:hover, 
+#tab-history::-webkit-scrollbar-thumb:hover {
+    background: #2980b9;
+}
