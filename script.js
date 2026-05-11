@@ -59,7 +59,7 @@ let inBattle = false;
 let player = { 
     hp: 100, shield: 0, energy: 0, name: "Herói", 
     dmgBuff: 0, gender: "Masculino", burnTurns: 0, 
-    tookDamageThisTurn: false, weaknessTurns: 0
+    tookDamageThisTurn: false 
 };
 let overloadedNextTurn = false;
 let lastPlayedCard = null;
@@ -101,9 +101,13 @@ let availableRewards = [
     { name: "Bola de Fogo", type: "magia", cost: 2, power: 35, img: "boladefogo.png", colorClass: "card-magia" },
     { name: "Loop", type: "loop", cost: 0, power: 0, img: "loop.png", colorClass: "card-magia" },
     { name: "Sobrecarga", type: "sobrecarga", cost: 0, power: 0, img: "sobrecarga.png", colorClass: "card-raio" },
-    { name: "Ataque Calculado", type: "ataque_calculado", cost: 1, power: 8, img: "ataquecalculado.png", colorClass: "card-ataque" }
+    { name: "Ataque Calculado", type: "ataque_calculado", cost: 1, power: 8, img: "ataquecalculado.png", colorClass: "card-ataque" },
+    
+    // --- NOVAS CARTAS ADICIONADAS ---
+    { name: "Ataque Final", type: "ataque_final", cost: 0, power: 30, img: "ataquefinal.png", colorClass: "card-ataque" },
+    { name: "Sacrifício Brutal", type: "descarte_atk", cost: 2, power: 50, img: "sacrificio.png", colorClass: "card-espada" },
+    { name: "Golpe Vampírico", type: "vampiric_atk", cost: 2, power: 25, img: "vampirico.png", colorClass: "card-magia" }
 ];
-
 const masterDeck = [
     { name: "Golpe", type: "atk", cost: 1, power: 15, img: "golpe.png", colorClass: "card-ataque" },
     { name: "Golpe", type: "atk", cost: 1, power: 15, img: "golpe.png", colorClass: "card-ataque" },
@@ -154,43 +158,21 @@ function buyItem(type, cost) {
 }
 
 function login() {
-    console.log("Botão clicado!"); // Isso vai aparecer no F12 se o botão estiver funcionando
-
-    const email = document.getElementById('userEmail').value.trim();
-    const name = document.getElementById('userName').value.trim();
-    const pass = document.getElementById('userPass').value.trim();
-    const gender = document.getElementById('userGender').value;
-
+    const email = document.getElementById('userEmail').value;
+    const name = document.getElementById('userName').value;
+    const pass = document.getElementById('userPass').value;
+    const gender = document.getElementById('userGender').value; 
     if (email.toLowerCase().endsWith("@gmail.com") && pass && name && gender) {
-        
-        // Verificação de segurança: se o objeto player não existir, nós criamos agora
-        if (typeof player === 'undefined') {
-            player = { hp: 100, energy: 0, shield: 0 };
-        }
-
         player.name = name;
         player.gender = gender;
-
-        // Atualiza os textos e imagens
         document.getElementById('playerNameDisplay').innerText = name; 
         document.getElementById('playerSprite').src = (gender === "Feminino") ? "heroi_mulher.png" : "heroi_homem.png";
-        
-        // Só tenta mudar o inimigo se o objeto enemy existir
-        if (typeof enemy !== 'undefined') {
-            document.getElementById('enemySprite').src = enemy.img;
-        }
-
-        // Muda a tela
+        document.getElementById('enemySprite').src = enemy.img;
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
-
-        // Verifica se a função updateUI existe antes de chamar
-        if (typeof updateUI === 'function') {
-            updateUI();
-        }
-        
+        updateUI();
     } else {
-        alert("Preencha todos os campos corretamente! O e-mail deve ser @gmail.com");
+        alert("Preencha todos os campos corretamente!");
     }
 }
 
@@ -233,19 +215,36 @@ function refillEnergyFromBank() {
     updateUI();
 }
 
-function completeHabit(btn, pts) {
-    energyBank += parseInt(pts); 
-    
-    showEnergyGain(pts); 
+function completeHabit(id) {
+    const h = meusHabitos.find(h => h.id === id);
+    if (!h || h.lastDone === currentDayIndex) return;
 
-    habitHistoryData[currentDayIndex]++;
-    const li = btn.parentElement;
-    btn.remove(); 
-    li.style.opacity = "0.6";
-    document.getElementById('doneHabitList').appendChild(li);
-    log(`Hábito concluído! +${pts}⚡.`);
+    // Lógica de Streak para o simulador
+    const diaAnterior = (currentDayIndex === 0) ? 6 : currentDayIndex - 1;
+    if (h.lastDone === diaAnterior) {
+        h.streak++;
+    } else {
+        h.streak = 1;
+    }
+
+    // Salva que foi feito no dia "X" (ex: 0 para Segunda)
+    h.lastDone = currentDayIndex;
+
+    let totalGanhado = h.recompensa + Math.floor(h.streak / 3);
+    energyBank += totalGanhado;
+    
+    if(habitHistoryData[currentDayIndex] !== undefined) {
+        habitHistoryData[currentDayIndex]++;
+    }
+    
+    showEnergyGain(totalGanhado);
+    log(`✔ ${h.nome} concluído! +${totalGanhado}⚡`);
+    
+    renderHabitsForToday(); // Isso vai mover o item para a lista de feitos
     updateUI();
+    updateChart();
 }
+
 
 // --- SISTEMA DE PARRY E MINIGAMES ---
 function startSkillCheck() {
@@ -376,26 +375,21 @@ function winMinigame() {
     clearInterval(minigameTimer);
     document.getElementById('minigameOverlay').classList.add('hidden');
 
+    // Agora pegamos o dano da intenção do Boss e dividimos por 2
     let mitigatedDmg = Math.floor(enemy.nextAction.val / 2);
+    
+    // Aplicamos o dano reduzido ao jogador
     applyDamageToPlayer(mitigatedDmg);
 
-    // 100% de certeza: define 2 turnos de fraqueza
-    player.weaknessTurns = 2; 
-
-    log(`🔬 Você conteve a explosão, mas o gás tóxico te deixou FRACO!`);
+    log(`🔬 Reação contida! Você mitigou o impacto, mas recebeu ${mitigatedDmg} de dano.`);
     executeMinionActionAndFinish();
 }
 
 function loseMinigame() {
     clearInterval(minigameTimer);
     document.getElementById('minigameOverlay').classList.add('hidden');
-    
     applyDamageToPlayer(50);
-
-    // 100% de certeza: define 2 turnos de fraqueza
-    player.weaknessTurns = 2; 
-
-    log("💥 ERRO CIENTÍFICO! Você sofreu dano crítico e está FRACO!");
+    log("💥 ERRO CIENTÍFICO! 50 de dano crítico recebido!");
     executeMinionActionAndFinish();
 }
 
@@ -447,7 +441,9 @@ function setTarget(target) {
 }
 function playCard(index) {
     if (!inBattle || skillCheckActive || !document.getElementById('minigameOverlay').classList.contains('hidden')) return;
-    const cardIndex = index;
+    
+    // Mudamos para 'let' para podermos atualizar o índice caso a carta de descarte altere o tamanho da mão
+    let cardIndex = index;
     const card = currentHand[cardIndex];
 
     if (!card) return;
@@ -460,16 +456,7 @@ function playCard(index) {
         switch(card.type) {
             case "retaliation":
                 let baseDmg = player.tookDamageThisTurn ? (card.power * 2) : card.power;
-                let totalRetalDmg = calculatePlayerDamage(baseDmg); // <-- MUDOU AQUI
-                let hpDmg = Math.max(0, totalRetalDmg - (targetEnt.enemyShield || 0));
-                targetEnt.enemyShield = Math.max(0, (targetEnt.enemyShield || 0) - totalRetalDmg);
-                targetEnt.hp -= hpDmg;
-                shakeElement(document.getElementById('enemySprite'));
-                log(`Determinação! Causou ${totalRetalDmg} de dano${player.tookDamageThisTurn ? " (RETALIAÇÃO!)" : ""}.`);
-                player.dmgBuff = 0;
-                break;
-
-                return totalDmg;
+                let totalRetalDmg = baseDmg + player.dmgBuff;
                 let hpDmg = Math.max(0, totalRetalDmg - (targetEnt.enemyShield || 0));
                 targetEnt.enemyShield = Math.max(0, (targetEnt.enemyShield || 0) - totalRetalDmg);
                 targetEnt.hp -= hpDmg;
@@ -481,7 +468,6 @@ function playCard(index) {
             case "atk": 
             case "pierce": 
             case "magia":
-                let finalPower = calculatePlayerDamage(card.power || 0); // <-- MUDOU AQUI
                 let damageToHp = Math.max(0, finalPower - (targetEnt.enemyShield || 0));
                 targetEnt.enemyShield = Math.max(0, (targetEnt.enemyShield || 0) - finalPower);
                 targetEnt.hp -= damageToHp;
@@ -528,10 +514,11 @@ function playCard(index) {
                 break;
 
             case "execute":
-                let damageDealt = calculatePlayerDamage(card.power); // <-- MUDOU AQUI
+                let damageDealt = card.power + player.dmgBuff;
                 targetEnt.hp -= damageDealt;
                 log(`Boss Killer causou ${damageDealt} de dano!`);
-                if (targetEnt.hp > 0 && targetEnt.hp < 60) {
+
+                 if (targetEnt.hp > 0 && targetEnt.hp < 60) {
                     targetEnt.hp = 0;
                     log(`🎯 LIMIAR ATINGIDO! O inimigo tinha menos de 60 HP e foi executado!`);
                 } else if (targetEnt.hp <= 0) {
@@ -539,15 +526,72 @@ function playCard(index) {
                 } else {
                     log(`O alvo resistiu à execução.`);
                 }
-                player.dmgBuff = 0; 
+
+                player.dmgBuff = 0;
                 shakeElement(document.getElementById('enemySprite'));
                 break;
 
             case "dark_atk":
-                let darkDmg = calculatePlayerDamage(card.power); // <-- MUDOU AQUI
+                let darkDmg = (card.power + player.dmgBuff);
                 targetEnt.hp -= darkDmg;
                 applyDamageToPlayer(card.selfDamage);
                 log(`Ataque Sombrio no ${targetEnt.name}!`);
+                player.dmgBuff = 0;
+                break;
+
+            case "ataque_final":
+                let hasOtherAttacks = currentHand.some((c, i) => i !== cardIndex && ["atk", "pierce", "magia", "retaliation", "execute", "dark_atk", "ataque_calculado", "descarte_atk", "vampiric_atk"].includes(c.type));
+                
+                if (hasOtherAttacks) {
+                    log(`${card.name} falhou: Você ainda tem outras cartas de ataque na mão!`);
+                    player.energy += card.cost; 
+                    return; 
+                }
+                
+                let finalStrikeDmg = card.power + player.dmgBuff;
+                let finalStrikeHpDmg = Math.max(0, finalStrikeDmg - (targetEnt.enemyShield || 0));
+                targetEnt.enemyShield = Math.max(0, (targetEnt.enemyShield || 0) - finalStrikeDmg);
+                targetEnt.hp -= finalStrikeHpDmg;
+                shakeElement(document.getElementById('enemySprite'));
+                log(`Ataque Final fulminante! Causou ${finalStrikeDmg} de dano.`);
+                player.dmgBuff = 0;
+                break;
+
+            case "descarte_atk":
+                if (currentHand.length <= 1) {
+                    log(`${card.name} falhou: Nenhuma carta na mão para sacrificar!`);
+                    player.energy += card.cost; 
+                    return;
+                }
+                
+                let idxToDiscard = currentHand.findIndex((c, i) => i !== cardIndex);
+                let discardedCard = currentHand.splice(idxToDiscard, 1)[0];
+                
+                // Se a carta descartada estava antes da carta jogada no array, o índice da carta jogada diminui em 1
+                if (idxToDiscard < cardIndex) {
+                    cardIndex -= 1;
+                }
+                
+                let discardStrikeDmg = card.power + player.dmgBuff;
+                let discardStrikeHpDmg = Math.max(0, discardStrikeDmg - (targetEnt.enemyShield || 0));
+                targetEnt.enemyShield = Math.max(0, (targetEnt.enemyShield || 0) - discardStrikeDmg);
+                targetEnt.hp -= discardStrikeHpDmg;
+                shakeElement(document.getElementById('enemySprite'));
+                log(`Sacrificou ${discardedCard.name}! O ataque brutal causou ${discardStrikeDmg} de dano.`);
+                player.dmgBuff = 0;
+                break;
+
+            case "vampiric_atk":
+                let vampDmg = card.power + player.dmgBuff;
+                let hpVampDmg = Math.max(0, vampDmg - (targetEnt.enemyShield || 0));
+                targetEnt.enemyShield = Math.max(0, (targetEnt.enemyShield || 0) - vampDmg);
+                targetEnt.hp -= hpVampDmg;
+                
+                let healAmt = Math.floor(hpVampDmg * 0.5);
+                player.hp = Math.min(100, player.hp + healAmt);
+                
+                shakeElement(document.getElementById('enemySprite'));
+                log(`Golpe Vampírico! Causou ${vampDmg} de dano e sugou ${healAmt} de HP.`);
                 player.dmgBuff = 0;
                 break;
 
@@ -569,8 +613,7 @@ function playCard(index) {
 
             case "ataque_calculado":
                 let cardsInHand = currentHand.length - 1; 
-                let baseCalcDamage = card.power + (card.power * cardsInHand);
-                let calcDamage = calculatePlayerDamage(baseCalcDamage); // <-- MUDOU AQUI
+                let calcDamage = card.power + (card.power * cardsInHand) + player.dmgBuff;;
                 let hpDamageCalc = Math.max(0, calcDamage - (targetEnt.enemyShield || 0));
                 targetEnt.enemyShield = Math.max(0, (targetEnt.enemyShield || 0) - calcDamage);
                 targetEnt.hp -= hpDamageCalc;
@@ -580,6 +623,7 @@ function playCard(index) {
                 break;
         }
 
+        // --- PARTE FINAL RESTAURADA AQUI ---
         if (card.type !== "loop") {
             lastPlayedCard = card;
         }
@@ -609,9 +653,6 @@ function endTurn() {
     if (minion && minion.bleedTurns > 0) { minion.hp -= 10; minion.bleedTurns--; }
     if (player.burnTurns > 0) { player.hp -= 8; player.burnTurns--; }
     updateUI();
-    // <-- ADICIONADO: Reduz o contador de fraqueza
-    if (player.weaknessTurns > 0) { player.weaknessTurns--; } 
-    // ...
 
     // 2. Inicia o processamento do Boss
     setTimeout(() => {
@@ -741,6 +782,12 @@ function getCardDescription(card) {
         case "ataque_calculado": return `Dano base: ${card.power}. Aumenta com base nas cartas na sua mão.`;
         case "recycle": return `Descarta sua mão atual e compra cartas novas.`;
         default: return `Um efeito misterioso...`;
+        case "ataque_final":
+            return `Causa ${card.power} de dano. Só pode ser usada se não houver outros ataques na mão.`;
+        case "descarte_atk":
+            return `Causa ${card.power} de dano brutal, mas sacrifica uma carta aleatória da sua mão.`;
+        case "vampiric_atk":
+            return `Causa ${card.power} de dano e cura seu HP em 50% do dano causado diretamente à vida do alvo.`;
     }
 }
 // --- INTERFACE ---
@@ -782,9 +829,6 @@ function updateUI() {
     if (DOM.energyStat) DOM.energyStat.innerText = player.energy;
     if (DOM.shieldPlayer) DOM.shieldPlayer.innerText = `🛡️ ${player.shield}`;
     if (DOM.energyBank) DOM.energyBank.innerText = `Reserva: ${energyBank}⚡`;
-    if (player.weaknessTurns > 0) { 
-    player.weaknessTurns--; 
-}
 
     // =========================
     // --- OURO ---
@@ -1045,13 +1089,43 @@ function nextStageSetup() {
     updateUI();
 }
 
+// ==========================================
 // --- UTILITÁRIOS ---
-function log(msg) { if(DOM.battleLog) DOM.battleLog.innerText = msg; }
+// ==========================================
+
+// ==========================================
+// --- SISTEMA DE LOG E FEEDBACK ---
+// ==========================================
+
+function log(msg) { 
+    if(typeof DOM !== 'undefined' && DOM.battleLog) {
+        DOM.battleLog.innerText = msg;
+        DOM.battleLog.scrollTop = DOM.battleLog.scrollHeight;
+    } else {
+        console.log(msg); // Fallback caso o DOM não esteja pronto
+    }
+}
+
 function shakeElement(el) {
     if(!el) return;
     el.classList.add('shake-anim');
     setTimeout(() => el.classList.remove('shake-anim'), 300);
 }
+
+function showEnergyGain(amount) {
+    const el = document.createElement('div');
+    el.className = "energy-gain";
+    el.innerText = `+${amount}⚡`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1000);
+}
+
+// ==========================================
+// --- VARIÁVEIS E CONFIGURAÇÃO ---
+// ==========================================
+
+let meusHabitos = []; 
+let consecutiveDays = 1; 
 
 function setupEmojiSelection() {
     const emojis = document.querySelectorAll('.emoji-item');
@@ -1064,6 +1138,10 @@ function setupEmojiSelection() {
     });
 }
 
+// ==========================================
+// --- SISTEMA DE GRÁFICO ---
+// ==========================================
+
 function initChart() {
     const canvas = document.getElementById('habitChart');
     if(!canvas) return;
@@ -1071,173 +1149,188 @@ function initChart() {
         type: 'bar',
         data: {
             labels: weekDays,
-            datasets: [{ label: 'Hábitos', data: habitHistoryData, backgroundColor: '#3498db' }]
+            datasets: [{ 
+                label: 'Hábitos Concluídos', 
+                data: habitHistoryData, 
+                backgroundColor: '#3498db',
+                borderColor: '#2980b9',
+                borderWidth: 1
+            }]
         },
-        options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+        options: { 
+            responsive: true,
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } 
+        }
     });
 }
 
-function updateChart() { if(habitChart) { habitChart.data.datasets[0].data = habitHistoryData; habitChart.update(); } }
-function nextDay() {
-    currentDayIndex = (currentDayIndex + 1) % 7;
-    document.getElementById('currentDayDisplay').innerText = `📅 ${weekDays[currentDayIndex]}`;
-    document.getElementById('doneHabitList').innerHTML = "";
-    updateChart();
+function updateChart() { 
+    if(habitChart) { 
+        habitChart.data.datasets[0].data = habitHistoryData; 
+        habitChart.update(); 
+    } 
 }
 
-function switchTab(tabName) {
-    document.getElementById('tab-pending').classList.toggle('hidden', tabName !== 'pending');
-    document.getElementById('tab-history').classList.toggle('hidden', tabName !== 'history');
-    if(tabName === 'history') updateChart();
-}
+// ==========================================
+// --- GERENCIAMENTO DE HÁBITOS ---
+// ==========================================
 
-function toggleHabitMenu() { document.getElementById('habitMenu').classList.toggle('hidden'); }
+// ==========================================
+// --- GERENCIAMENTO DE HÁBITOS ---
+// ==========================================
 
-// --- ADICIONADO: FUNÇÃO DE ADICIONAR HÁBITO FINALIZADA ---
-
-
-// Array global para guardar os hábitos ativos
-let meusHabitos = [];
-
-// Função robusta para adicionar hábitos (Corrige o bug de adicionar)
 function renderHabitsForToday() {
-    const listDOM = document.getElementById('habitList');
-    if (!listDOM) return;
-
-    listDOM.innerHTML = '';
-
-    const hoje = new Date().getDay(); // 0=Dom, 1=Seg...
+    const pendingContainer = document.getElementById('habitList');
+    const doneContainer = document.getElementById('doneHabitList');
+    
+    if (!pendingContainer || !doneContainer) return;
+    
+    pendingContainer.innerHTML = '';
+    doneContainer.innerHTML = '';
 
     meusHabitos.forEach(h => {
-        const mostrar =
-            h.tipo === "diario" ||
-            (h.tipo === "semanal" && h.dias.includes(hoje));
+        const eDiaDeMostrar = (h.tipo === "diario") || (h.tipo === "semanal" && h.dias.includes(currentDayIndex));
+        const jaFeitoHoje = (h.lastDoneIndex === currentDayIndex);
+        
+        // --- CÁLCULO DE PREVISÃO COM LIMITE DE 8⚡ ---
+        let streakPrevisto = h.streak;
+        if (!jaFeitoHoje) {
+            let ontemIndex = currentDayIndex === 0 ? 6 : currentDayIndex - 1;
+            // Se fez ontem, o streak vai subir. Se não, reseta pra 1.
+            streakPrevisto = (h.lastDoneIndex === ontemIndex) ? h.streak + 1 : 1;
+        }
 
-        if (!mostrar) return;
+        const bonusStreak = Math.floor(streakPrevisto / 3);
+        // Limita o ganho visual a no máximo 8
+        const valorQueSeraGanho = Math.min(h.recompensa + bonusStreak, 8);
+        
+        if (eDiaDeMostrar) {
+            const li = document.createElement('li');
+            if (!jaFeitoHoje) {
+                li.className = 'habit-item';
+                li.innerHTML = `
+                    <div class="habit-info">
+                        <span class="habit-name">${h.nome}</span>
+                        <span class="habit-meta">🔥 Streak: ${h.streak} | Ganhe +${valorQueSeraGanho}⚡</span>
+                    </div>
+                    <button onclick="completeHabit(${h.id})">✔</button>
+                `;
+                pendingContainer.appendChild(li);
+            } else {
+                // Mostra o valor que ele DE FATO ganhou (limitado a 8)
+                const bonusEfetivo = Math.floor(h.streak / 3);
+                const valorFinal = Math.min(h.recompensa + bonusEfetivo, 8);
 
-        const li = document.createElement('li');
-        li.className = 'habit-item';
-
-        li.innerHTML = `
-            <span>
-            ${h.nome} (+${h.recompensa}⚡)
-            ${h.tipo === "semanal" ? "📅 " + h.dias.join(",") : ""}
-                🔥 ${h.streak} dias
-            </span>
-            <button onclick="completeHabitNew(${h.id}, this)">✔</button>
-        `;
-
-        listDOM.appendChild(li);
+                li.className = 'habit-item habit-done';
+                li.innerHTML = `<span class="habit-name">✅ ${h.nome} (Ganhou +${valorFinal}⚡)</span>`;
+                doneContainer.appendChild(li);
+            }
+        }
     });
 }
-function completeHabitNew(id, btn) {
+
+function completeHabit(id) {
     const h = meusHabitos.find(h => h.id === id);
-    if (!h) return;
+    if (!h || h.lastDoneIndex === currentDayIndex) return;
 
-    const hoje = new Date().toDateString();
-
-    if (h.lastDone === hoje) {
-        log("Você já fez isso hoje!");
-        return;
-    }
-
-    const ontem = new Date();
-    ontem.setDate(ontem.getDate() - 1);
-
-    if (h.lastDone === ontem.toDateString()) {
+    let ontemIndex = currentDayIndex === 0 ? 6 : currentDayIndex - 1;
+    if (h.lastDoneIndex === ontemIndex) {
         h.streak++;
     } else {
         h.streak = 1;
     }
 
-    h.lastDone = hoje;
+    h.lastDoneIndex = currentDayIndex;
+    h.lastDone = new Date().toDateString(); 
 
+    // --- RECOMPENSA DE TAREFA LIMITADA A 8⚡ ---
     let bonus = Math.floor(h.streak / 3);
-    let total = h.recompensa + bonus;
+    let totalGanhado = Math.min(h.recompensa + bonus, 8);
+    energyBank += totalGanhado;
 
-    energyBank += total;
-
-    log(`✔ ${h.nome}! +${total}⚡ (🔥${h.streak})`);
-
-    // animação
-    btn.parentElement.classList.add("habit-done");
-
+    if(habitHistoryData[currentDayIndex] !== undefined) {
+        habitHistoryData[currentDayIndex]++;
+    }
+    
+    showEnergyGain(totalGanhado);
+    log(`✔ ${h.nome} concluído! +${totalGanhado}⚡ (Streak: ${h.streak})`);
+    
     renderHabitsForToday();
-    updateUI();
+    if(typeof updateUI === 'function') updateUI();
+    updateChart();
 }
 
-// Função para mostrar apenas os hábitos do dia de hoje
+// ==========================================
+// --- NAVEGAÇÃO E RECOMPENSA DIÁRIA ---
+// ==========================================
 
+function nextDay() {
+    currentDayIndex = (currentDayIndex + 1) % 7;
+    
+    // RECOMPENSA DO DIA LIMITADA A 15⚡
+    const dailyBonus = Math.min(3 + consecutiveDays, 15); 
+    energyBank += dailyBonus;
+    consecutiveDays++; 
 
-// --- SELEÇÃO DE EMOJIS ---
-    function setupEmojiSelection() {
-    const emojis = document.querySelectorAll('.emoji-item');
-    emojis.forEach(emoji => {
-        emoji.onclick = () => {
-            emojis.forEach(e => e.classList.remove('selected'));
-            emoji.classList.add('selected');
-            selectedIcon = emoji.dataset.icon; // Define o ícone globalmente
-        };
-    });
+    const display = document.getElementById('currentDayDisplay');
+    if(display) display.innerText = `📅 ${weekDays[currentDayIndex]}`;
+    
+    showEnergyGain(dailyBonus); 
+    log(`🌅 Amanheceu em ${weekDays[currentDayIndex]}! +${dailyBonus}⚡ (Bônus Diário)`);
+    
+    renderHabitsForToday(); 
+    if(typeof updateUI === 'function') updateUI(); 
+    updateChart(); 
 }
 
-function showEnergyGain(amount) {
-    const el = document.createElement('div');
-    el.className = "energy-gain";
-    el.innerText = `+${amount}⚡`;
+// ==========================================
+// --- CRIAÇÃO E INTERFACE ---
+// ==========================================
 
-    document.body.appendChild(el);
-
-    setTimeout(() => el.remove(), 1000);
+function toggleDaysSelector() {
+    const tipo = document.getElementById('habitType').value;
+    const selector = document.getElementById('weekDaysSelector');
+    if (selector) {
+        selector.classList.toggle('hidden', tipo !== 'semanal');
+    }
 }
+
+function getSelectedDays() {
+    const checkboxes = document.querySelectorAll('.day-checkbox:checked');
+    return Array.from(checkboxes).map(cb => parseInt(cb.value));
+}
+
 function addHabit() {
     const input = document.getElementById('habitInput');
-    const dificuldade = document.getElementById('habitDifficulty');
     const tipo = document.getElementById('habitType').value;
-
+    const dificuldade = document.getElementById('habitDifficulty');
+    
     const nome = input.value.trim();
-    const recompensa = parseInt(dificuldade.value);
+    if (!nome) return alert("Digite o nome do hábito!");
 
-    if (!nome) {
-        alert("Digite um hábito!");
-        return;
+    const diasSelecionados = tipo === "semanal" ? getSelectedDays() : [];
+
+    if (tipo === "semanal" && diasSelecionados.length === 0) {
+        return alert("Selecione os dias da semana para o hábito semanal!");
     }
 
     const novoHabito = {
         id: Date.now(),
         nome: `${selectedIcon} ${nome}`,
         tipo: tipo,
-        dias: [],
-        recompensa: recompensa,
+        recompensa: parseInt(dificuldade.value),
+        dias: diasSelecionados,
         streak: 0,
-        lastDone: null
+        lastDone: null,
+        lastDoneIndex: null 
     };
 
-    // 🔥 AQUI entra o trecho que você perguntou
-    if (tipo === "semanal") {
-        novoHabito.dias = getSelectedDays();
-
-        if (novoHabito.dias.length === 0) {
-            alert("Selecione pelo menos um dia!");
-            return;
-        }
-    }
-
     meusHabitos.push(novoHabito);
-
+    
     input.value = "";
-
+    document.querySelectorAll('.day-checkbox').forEach(cb => cb.checked = false);
+    toggleDaysSelector(); 
+    
+    log("✅ Hábito adicionado!");
     renderHabitsForToday();
-}
-function getSelectedDays() {
-    const checkboxes = document.querySelectorAll('.day-checkbox:checked');
-    return Array.from(checkboxes).map(cb => parseInt(cb.value));
-}
-
-const tipoSelect = document.getElementById('habitType'); // cria no HTML depois
-const tipo = tipoSelect ? tipoSelect.value : "diario";
-
-function getSelectedDays() {
-    const checked = document.querySelectorAll('#weekDaysSelector input:checked');
-    return Array.from(checked).map(el => parseInt(el.value));
 }
