@@ -68,7 +68,7 @@
         .mt-20 { margin-top: 20px; }
         .mb-15 { margin-bottom: 15px; }
 
-        /* --- ESTILOS DA LOJA --- */
+        /* Estilos da Loja */
         #shopModal {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #1a1a2e; padding: 25px; border-radius: 15px;
@@ -89,6 +89,18 @@
             padding: 10px 20px; border-radius: 8px; border: none;
             cursor: pointer; box-shadow: 0 4px 0 #9a7d0a; font-family: inherit;
         }
+
+        /* Ajuste do Seletor de Dias Semanais */
+        #weekDaysSelector {
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+        }
+        #weekDaysSelector label { font-size: 0.8em; color: #eee; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -141,7 +153,6 @@
 
     <div id="loginScreen" class="overlay">
         <div class="login-box">
-            <img src="image_0.png" alt="Logo HabitGame" class="login-logo">
             <h1>🛡️ HabitGame</h1>
             <p>Acesse sua conta de Herói</p>
             
@@ -207,20 +218,21 @@
                         <option value="4">Médio (4 ⚡)</option>
                         <option value="5" selected>Difícil (5 ⚡)</option>
                     </select>
-                    <select id="habitType">
-    <option value="diario">Diário</option>
-    <option value="semanal">Semanal</option>
-</select>
 
-<div id="weekDaysSelector" class="hidden">
-    <label><input type="checkbox" value="1"> Seg</label>
-    <label><input type="checkbox" value="2"> Ter</label>
-    <label><input type="checkbox" value="3"> Qua</label>
-    <label><input type="checkbox" value="4"> Qui</label>
-    <label><input type="checkbox" value="5"> Sex</label>
-    <label><input type="checkbox" value="6"> Sáb</label>
-    <label><input type="checkbox" value="0"> Dom</label>
-</div>
+                    <select id="habitType" onchange="toggleDaysSelector()">
+                        <option value="diario">Diário</option>
+                        <option value="semanal">Semanal</option>
+                    </select>
+
+                    <div id="weekDaysSelector" class="hidden">
+                        <label><input type="checkbox" class="day-checkbox" value="0"> Seg</label>
+                        <label><input type="checkbox" class="day-checkbox" value="1"> Ter</label>
+                        <label><input type="checkbox" class="day-checkbox" value="2"> Qua</label>
+                        <label><input type="checkbox" class="day-checkbox" value="3"> Qui</label>
+                        <label><input type="checkbox" class="day-checkbox" value="4"> Sex</label>
+                        <label><input type="checkbox" class="day-checkbox" value="5"> Sáb</label>
+                        <label><input type="checkbox" class="day-checkbox" value="6"> Dom</label>
+                    </div>
 
                     <button onclick="addHabit()" class="btn-main">Criar Hábito</button>
                 </div>
@@ -232,7 +244,7 @@
             <div id="tab-history" class="hidden">
                 <h2 class="section-title">Sua Produtividade</h2>
                 <div class="chart-container">
-                    <canvas id="habitChart" aria-label="Gráfico de progresso de hábitos" role="img"></canvas>
+                    <canvas id="habitChart"></canvas>
                 </div>
                 <h2 class="section-title" style="color: #2ecc71;">✅ Concluídos</h2>
                 <ul id="doneHabitList"></ul>
@@ -248,7 +260,7 @@
                 <div class="entity enemy">
                     <div id="enemyStatus" class="status-effects"></div>
                     <div class="sprite-container">
-                        <img src="globin.png" id="enemySprite" alt="Monstro inimigo">
+                        <img src="globin.png" id="enemySprite" alt="Inimigo">
                     </div>
                     <div class="hp-bar">
                         <div id="enemyHp" style="width: 100%;"></div>
@@ -272,7 +284,7 @@
             </div>
 
             <div class="text-center" style="margin: 10px 0;">
-                <button id="btnStartBattle" onclick="startBattle()" class="btn-main" style="background: #e74c3c; box-shadow: 0 4px 0 #c0392b;">
+                <button id="btnStartBattle" onclick="startBattle()" class="btn-main" style="background: #e74c3c;">
                     Iniciar Batalha ⚔️
                 </button>
             </div>
@@ -294,24 +306,26 @@
         </section>
     </main>
 
-    <div id="rewardScreen" class="overlay hidden" style="z-index: 1005;">
-        <div class="login-box" style="width: 350px; background: rgba(20, 20, 30, 0.98); border: 2px solid #f1c40f;">
+    <div id="rewardScreen" class="overlay hidden">
+        <div class="login-box" style="border: 2px solid #f1c40f;">
             <h1 class="text-gold">🏆 Vitória!</h1>
-            <p style="color: #fff;" class="mb-15">Você encontrou uma nova técnica:</p>
-            <div id="rewardCardDisplay" style="margin-bottom: 25px; transform: scale(1.2);"></div>
-            <button onclick="claimReward()" class="btn-main" style="background: linear-gradient(135deg, #f1c40f, #d4ac0d); color: #000; box-shadow: 0 4px 0 #9a7d0a;">
-                Confirmar e Avançar
-            </button>
+            <p style="color: #fff;">Você encontrou uma nova técnica:</p>
+            <div id="rewardCardDisplay" style="margin: 20px 0;"></div>
+            <button onclick="claimReward()" class="btn-main">Confirmar e Avançar</button>
         </div>
     </div>
 
     <script src="script.js"></script>
     <script>
-        // Funções de controle da UI da loja no HTML
+        // Funções rápidas de controle de UI
         function toggleShop() {
-            const modal = document.getElementById('shopModal');
-            modal.classList.toggle('hidden');
+            document.getElementById('shopModal').classList.toggle('hidden');
         }
+
+        // Inicializa os emojis ao carregar
+        window.onload = () => {
+            if (typeof setupEmojiSelection === "function") setupEmojiSelection();
+        };
     </script>
 </body>
 </html>
