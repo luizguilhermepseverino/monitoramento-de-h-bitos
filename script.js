@@ -105,7 +105,7 @@ let availableRewards = [
     
     // --- NOVAS CARTAS ADICIONADAS ---
     { name: "Ataque Final", type: "ataque_final", cost: 0, power: 30, img: "ataquefinal.png", colorClass: "card-ataque" },
-    { name: "Sacrifício Brutal", type: "descarte_atk", cost: 2, power: 50, img: "sacrificio.png", colorClass: "card-espada" },
+    { name: "descarte ataque", type: "descarte_atk", cost: 2, power: 50, img: "descarte.png", colorClass: "card-espada" },
     { name: "Golpe Vampírico", type: "vampiric_atk", cost: 2, power: 25, img: "vampirico.png", colorClass: "card-magia" }
 ];
 const masterDeck = [
@@ -1006,6 +1006,10 @@ function checkGameOver() {
         alert("GAME OVER!"); location.reload();
     }
 }
+// ==========================================
+// --- RECOMPENSAS E ESTÁGIOS ---
+// ==========================================
+
 function showRewardChoice() {
     if (availableRewards.length < 2) {
         nextStageSetup();
@@ -1026,15 +1030,11 @@ function showRewardChoice() {
 
     container.innerHTML = `
         <h3 style="color: white; margin-bottom: 20px;">Escolha sua Recompensa:</h3>
-
         <div style="display: flex; gap: 30px; justify-content: center; align-items: center;">
-
             <div onclick="claimSpecificReward(${idx1})" style="cursor:pointer; text-align:center;">
                 <div class="card ${card1.colorClass}">
                     <div class="card-cost">${card1.cost}</div>
                     <img src="${card1.img}">
-
-                    <!-- TOOLTIP -->
                     <div class="card-tooltip">
                         <b>${card1.name}</b><br>
                         ${getCardDescription(card1)}
@@ -1042,13 +1042,10 @@ function showRewardChoice() {
                 </div>
                 <p style="color:white; font-weight:bold; margin-top:10px;">${card1.name}</p>
             </div>
-
             <div onclick="claimSpecificReward(${idx2})" style="cursor:pointer; text-align:center;">
                 <div class="card ${card2.colorClass}">
                     <div class="card-cost">${card2.cost}</div>
                     <img src="${card2.img}">
-
-                    <!-- TOOLTIP -->
                     <div class="card-tooltip">
                         <b>${card2.name}</b><br>
                         ${getCardDescription(card2)}
@@ -1056,7 +1053,6 @@ function showRewardChoice() {
                 </div>
                 <p style="color:white; font-weight:bold; margin-top:10px;">${card2.name}</p>
             </div>
-
         </div>
     `;
 }
@@ -1090,11 +1086,7 @@ function nextStageSetup() {
 }
 
 // ==========================================
-// --- UTILITÁRIOS ---
-// ==========================================
-
-// ==========================================
-// --- SISTEMA DE LOG E FEEDBACK ---
+// --- UTILITÁRIOS E FEEDBACK ---
 // ==========================================
 
 function log(msg) { 
@@ -1102,7 +1094,7 @@ function log(msg) {
         DOM.battleLog.innerText = msg;
         DOM.battleLog.scrollTop = DOM.battleLog.scrollHeight;
     } else {
-        console.log(msg); // Fallback caso o DOM não esteja pronto
+        console.log(msg);
     }
 }
 
@@ -1121,63 +1113,11 @@ function showEnergyGain(amount) {
 }
 
 // ==========================================
-// --- VARIÁVEIS E CONFIGURAÇÃO ---
+// --- GERENCIAMENTO DE HÁBITOS ---
 // ==========================================
 
 let meusHabitos = []; 
 let consecutiveDays = 1; 
-
-function setupEmojiSelection() {
-    const emojis = document.querySelectorAll('.emoji-item');
-    emojis.forEach(emoji => {
-        emoji.onclick = () => {
-            emojis.forEach(e => e.classList.remove('selected'));
-            emoji.classList.add('selected');
-            selectedIcon = emoji.dataset.icon || emoji.textContent;
-        };
-    });
-}
-
-// ==========================================
-// --- SISTEMA DE GRÁFICO ---
-// ==========================================
-
-function initChart() {
-    const canvas = document.getElementById('habitChart');
-    if(!canvas) return;
-    habitChart = new Chart(canvas.getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: weekDays,
-            datasets: [{ 
-                label: 'Hábitos Concluídos', 
-                data: habitHistoryData, 
-                backgroundColor: '#3498db',
-                borderColor: '#2980b9',
-                borderWidth: 1
-            }]
-        },
-        options: { 
-            responsive: true,
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } 
-        }
-    });
-}
-
-function updateChart() { 
-    if(habitChart) { 
-        habitChart.data.datasets[0].data = habitHistoryData; 
-        habitChart.update(); 
-    } 
-}
-
-// ==========================================
-// --- GERENCIAMENTO DE HÁBITOS ---
-// ==========================================
-
-// ==========================================
-// --- GERENCIAMENTO DE HÁBITOS ---
-// ==========================================
 
 function renderHabitsForToday() {
     const pendingContainer = document.getElementById('habitList');
@@ -1192,16 +1132,13 @@ function renderHabitsForToday() {
         const eDiaDeMostrar = (h.tipo === "diario") || (h.tipo === "semanal" && h.dias.includes(currentDayIndex));
         const jaFeitoHoje = (h.lastDoneIndex === currentDayIndex);
         
-        // --- CÁLCULO DE PREVISÃO COM LIMITE DE 8⚡ ---
         let streakPrevisto = h.streak;
         if (!jaFeitoHoje) {
             let ontemIndex = currentDayIndex === 0 ? 6 : currentDayIndex - 1;
-            // Se fez ontem, o streak vai subir. Se não, reseta pra 1.
             streakPrevisto = (h.lastDoneIndex === ontemIndex) ? h.streak + 1 : 1;
         }
 
         const bonusStreak = Math.floor(streakPrevisto / 3);
-        // Limita o ganho visual a no máximo 8
         const valorQueSeraGanho = Math.min(h.recompensa + bonusStreak, 8);
         
         if (eDiaDeMostrar) {
@@ -1217,7 +1154,6 @@ function renderHabitsForToday() {
                 `;
                 pendingContainer.appendChild(li);
             } else {
-                // Mostra o valor que ele DE FATO ganhou (limitado a 8)
                 const bonusEfetivo = Math.floor(h.streak / 3);
                 const valorFinal = Math.min(h.recompensa + bonusEfetivo, 8);
 
@@ -1243,7 +1179,6 @@ function completeHabit(id) {
     h.lastDoneIndex = currentDayIndex;
     h.lastDone = new Date().toDateString(); 
 
-    // --- RECOMPENSA DE TAREFA LIMITADA A 8⚡ ---
     let bonus = Math.floor(h.streak / 3);
     let totalGanhado = Math.min(h.recompensa + bonus, 8);
     energyBank += totalGanhado;
@@ -1261,13 +1196,65 @@ function completeHabit(id) {
 }
 
 // ==========================================
-// --- NAVEGAÇÃO E RECOMPENSA DIÁRIA ---
+// --- INTERFACE E NAVEGAÇÃO ---
 // ==========================================
+
+/**
+ * Alterna a visibilidade do menu de hábitos
+ */
+function toggleHabitMenu() {
+    const menu = document.getElementById('habitMenu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+}
+
+function toggleDaysSelector() {
+    const tipo = document.getElementById('habitType').value;
+    const selector = document.getElementById('weekDaysSelector');
+    if (selector) {
+        selector.classList.toggle('hidden', tipo !== 'semanal');
+    }
+}
+
+function addHabit() {
+    const input = document.getElementById('habitInput');
+    const tipo = document.getElementById('habitType').value;
+    const dificuldade = document.getElementById('habitDifficulty');
+    
+    const nome = input.value.trim();
+    if (!nome) return alert("Digite o nome do hábito!");
+
+    const diasSelecionados = tipo === "semanal" ? getSelectedDays() : [];
+
+    if (tipo === "semanal" && diasSelecionados.length === 0) {
+        return alert("Selecione os dias da semana para o hábito semanal!");
+    }
+
+    const novoHabito = {
+        id: Date.now(),
+        nome: `${selectedIcon} ${nome}`,
+        tipo: tipo,
+        recompensa: parseInt(dificuldade.value),
+        dias: diasSelecionados,
+        streak: 0,
+        lastDone: null,
+        lastDoneIndex: null 
+    };
+
+    meusHabitos.push(novoHabito);
+    
+    input.value = "";
+    document.querySelectorAll('.day-checkbox').forEach(cb => cb.checked = false);
+    toggleDaysSelector(); 
+    
+    log("✅ Hábito adicionado!");
+    renderHabitsForToday();
+}
 
 function nextDay() {
     currentDayIndex = (currentDayIndex + 1) % 7;
     
-    // RECOMPENSA DO DIA LIMITADA A 15⚡
     const dailyBonus = Math.min(3 + consecutiveDays, 15); 
     energyBank += dailyBonus;
     consecutiveDays++; 
